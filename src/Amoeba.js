@@ -1,13 +1,14 @@
 export class Amoeba {
-    constructor(id, func, eventEmitter, expectedEvents = []) {
-        this.id = id; // Identificador único de la ameba
-        this.func = func; // Función que realiza esta ameba
-        this.expectedEvents = expectedEvents; // Eventos esperados como entrada
-        this.receivedData = {}; // Datos recibidos de los eventos
-        this.executed = false; // Indica si ya ejecutó su función
+    constructor(id, func, eventEmitter, storeResults = false, expectedEvents = []) {
+        this.id = id; 
+        this.func = func; 
+        this.expectedEvents = expectedEvents; 
+        this.receivedData = {}; 
+        this.eventEmitter = eventEmitter; 
+        this.storeResults = storeResults;
+        this.executed = false; 
         this.ready = false;        
-        this.eventEmitter = eventEmitter; // Se inicializa como null
-        console.log(`[${this.id}] Creada con eventos esperados:`, this.expectedEvents);
+        console.log(`[${this.id}] Created with expected events:`, this.expectedEvents);
     }
     
     setReady() {
@@ -17,7 +18,7 @@ export class Amoeba {
     
     receive(eventName, data) {
         this.receivedData[eventName] = data;
-        console.log(`[${this.id}] Estado actual de entradas:`, this.receivedData);
+        console.log(`[${this.id}] Current input state:`, this.receivedData);
         this.checkAndExecute();
     }
 
@@ -25,21 +26,24 @@ export class Amoeba {
         const receivedEvents = Object.keys(this.receivedData);
         if (this.ready && receivedEvents.length === this.expectedEvents.length && !this.executed) {
             const args = this.expectedEvents.map(eventName => this.receivedData[eventName]);
-            console.log(`[${this.id}] Ejecutando función con argumentos:`, args);
             const output = await this.func(...args);
-            console.log(`[${this.id}] Generó salida:`, output);
+            if (this.storeResults) {
+                this.result = output; 
+            }
             this.emit(output);
             this.executed = true;
         }
     }
 
     emit(output) {
-        const eventName = `${this.id}.output`;        
-        if (this.eventEmitter) {
-            console.log(`[${this.id}] Emite evento: "${eventName}" con datos:`, output);
+        const eventName = `${this.id}.output`;
+    
+        if (this.eventEmitter && Object.keys(this.eventEmitter.events).length > 0) { 
+            // Solo emitir si hay listeners registrados
+            console.log(`[${this.id}] Emitting event: "${eventName}" with data:`, output);
             this.eventEmitter.emit(eventName, output);
         } else {
-            console.error(`[${this.id}] Error: No hay un eventEmitter configurado.`);
+            console.log(`[${this.id}] Event not emitted because no listeners are registered.`);
         }
     }
 }

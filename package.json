@@ -1,13 +1,26 @@
 {
   "name": "sea-of-amoebas",
   "version": "1.0.0",
+  "description": "A declarative and event-driven execution framework for building scalable, asynchronous flow systems.",
   "main": "index.js",
+  "type": "module",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test":  "node tests/sea-of-amoebas.test.js",
+    "start": "node index.js"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "description": ""
+  "keywords": ["framework", "event-driven", "declarative", "asynchronous", "amoebas"],
+  "author": "gaotisan",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/gaotisan/sea-of-amoebas.git"
+  },
+  "bugs": {
+    "url": "https://github.com/gaotisan/sea-of-amoebas/issues"
+  },
+  "homepage": "https://github.com/gaotisan/sea-of-amoebas#readme",
+  "dependencies": {},
+  "devDependencies": {
+    "eslint": "^8.50.0"
+  }
 }
-
