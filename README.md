@@ -12,7 +12,6 @@ A declarative and event-driven execution framework designed for creating, managi
 Clone the repository:
 
 ```bash
-Copiar código
 git clone https://github.com/gaotisan/sea-of-amoebas.git
 cd sea-of-amoebas
 Install dependencies (if applicable):
