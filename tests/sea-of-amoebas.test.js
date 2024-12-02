@@ -69,39 +69,39 @@ async function testSequentialExecution() {
 
 // Test: Chain execution with parameters
 async function testCalculationExecution() {
-    const suma = (a, b) => a + b;
-    const multiplica = (x, y) => x * y;
-    const incrementa = async (z) => z + 1;
+    const add = (a, b) => a + b;
+    const multiply  = (x, y) => x * y;
+    const increment  = async (z) => z + 1;
 
     const space = new AmoebaSpace();
 
     // Add amoebas using the new object syntax
     space.addAmoeba({
         id: 'AmoebaA',
-        func: suma,
+        func: add,
         expectedEvents: ['input.a', 'input.b'],
         outputEvents: ['AmoebaB.input']
     });
 
     space.addAmoeba({
         id: 'AmoebaB',
-        func: multiplica,
+        func: multiply,
         expectedEvents: ['AmoebaB.input', 'input.y'],
         outputEvents: ['AmoebaC.input']
     });
 
     space.addAmoeba({
         id: 'AmoebaC',
-        func: incrementa,
+        func: increment,
         expectedEvents: ['AmoebaC.input']
     });
 
     // Finalize configuration and wait for the last amoeba
     space.finalizeConfiguration();
     // Set initial inputs
-    space.setInput('input.a', 5); // Valor inicial para 'input.a'
-    space.setInput('input.b', 3); // Valor inicial para 'input.b'
-    space.setInput('input.y', 2); // Valor inicial para 'input.y'
+    space.setInput('input.a', 5); 
+    space.setInput('input.b', 3); 
+    space.setInput('input.y', 2); 
     const finalResult = await space.waitForAmoebaExecution('AmoebaC');
 
     // Validate results
