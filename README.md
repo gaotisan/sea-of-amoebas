@@ -1,12 +1,50 @@
 # Sea of Amoebas
-A declarative and event-driven execution framework designed for creating, managing, and executing complex flows with minimal configuration.
+A declarative, event-driven execution framework for constructing, managing, and executing complex workflows in a modular and scalable manner.
+
+## Key Concepts
+At its core, Sea of Amoebas operates on the concept of Amoeba Nodes (functions) that process inputs triggered by events. These functions are orchestrated in a graph-like structure where dependencies between nodes are defined declaratively.
+
+Each node can:
+    1.	Represent a mathematical or logical function f(x1,x2,…,xn) where each parameter is received via an event.
+    2.	Emit multiple output events e1,e2,…,em enabling branching flows.
+    3.	Act as a building block for complex, event-driven systems.
+
+The framework ensures that:
+    •	A node executes only after receiving all required inputs (events).
+    •	Outputs from one node can trigger multiple subsequent nodes, allowing for the creation of parallel and branching workflows.
+    •	Event emitters can be shared across different workflows for modular design
+
+##Core Principles
+1.	**Event-Driven Execution:**
+    •	Each function f(x1,x2,…,xn)f(x_1, x_2, \ldots, x_n)f(x1,x2,…,xn) receives its parameters as distinct events.
+    •	Functions do not execute until all required events are received.
+    •	Events can represent any type of data, from simple primitives to complex objects.
+2.	**Multiple Outputs:**
+    •	Nodes can emit multiple output events e1,e2,…,eme_1, e_2, \ldots, e_me1,e2,…,em.
+    •	This supports parallel and branching workflows, enabling functionalities like logging or data storage alongside the primary flow.
+3.	**Interconnected Spaces:**
+    •	Event emitters can be shared between spaces, allowing multiple "seas" of amoebas to work together modularly.
+    •	This facilitates modular, manageable, and reusable workflow definitions.
+4.	**Infinite Listening or Stopping Events:**
+    •	Define explicit stopping conditions using final events, or keep the workflow latent, continuously listening for events.
 
 ## Features
-- **Amoeba Nodes**: Define functions that wait for specific events, process inputs, and emit results.
-- **Event-Driven**: Uses an efficient custom EventEmitter for managing dependencies and data flow.
-- **Declarative Support**: Define flows using JSON, YAML, or Mermaid syntax.
-- **Asynchronous Ready**: Functions can be synchronous or asynchronous.
-- **Scalable**: Designed to handle large graphs of interconnected nodes.
+- **Event-Driven Paradigm**: Nodes are triggered by the reception of specific events, ensuring precise and asynchronous execution.
+- **Multiple Outputs**: Nodes can emit multiple events, facilitating advanced branching and modular functionality (e.g., logging, parallel tasks).
+- **Declarative Design**: Workflows can be defined in JSON, YAML, or Mermaid syntax for clarity and portability.
+- **Asynchronous Support**: Fully compatible with both synchronous and asynchronous functions.
+- **Modularity**: Event emitters can be shared between spaces, allowing distinct workflows to interconnect seamlessly.
+- **Scalability**: Designed to handle extensive and intricate workflows effectively.
+
+## Advanced Features
+**Event Sharing Across Spaces**
+Create modular workflows that interconnect seamlessly by sharing a common EventEmitter across different AmoebaSpace instances. This feature is useful for modular and reusable system design.
+
+**Dynamic Event Outputs**
+Nodes can emit events dynamically based on their logic, enabling complex decision-making processes within workflows.
+
+**Flexible Stopping Conditions**
+You can specify stopping conditions explicitly or allow workflows to remain active indefinitely, listening for additional events.
 
 ## Installation
 Clone the repository:
