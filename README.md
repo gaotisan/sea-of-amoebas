@@ -1,4 +1,4 @@
-# Sea of Amoebas
+# Sea of Amoebas (SofA)
 A declarative, event-driven execution framework for constructing, managing, and executing complex workflows in a modular and scalable manner.
 
 ## Key Concepts
