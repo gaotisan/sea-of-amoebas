@@ -2,7 +2,7 @@ import { AmoebaSpace } from './AmoebaSpace.js';
 import YAML from 'yaml'; // If using a YAML library
 
 export class AmoebaFlowParser {
-    constructor() {}
+    constructor() { }
 
     /**
      * Creates an AmoebaSpace from a JSON flow.
@@ -32,33 +32,96 @@ export class AmoebaFlowParser {
     }
 
     /**
-     * Creates an AmoebaSpace from a YAML flow.
-     * @param {string} yaml - YAML definition.
-     * @returns {AmoebaSpace}
+    * Validates the structure of a flow object.
+    * @param {Object} flow - Flow to validate.
+    * @throws {Error} If the structure is invalid.
+    */
+    static validateStructure(flow) {
+        if (!Array.isArray(flow.amebas)) {
+            throw new Error('Invalid flow structure. Expected a key "amebas" (array).');
+        }
+
+        // Iterate over amoebas and validate each one
+        flow.amebas.forEach((ameba, index) => {
+            const { id, func, outputEvents } = ameba;
+
+            AmoebaFlowParser.validateId(id, index);
+            AmoebaFlowParser.validateFunc(func, id);
+            AmoebaFlowParser.validateOutputEvents(outputEvents, id);
+        });
+    }
+
+    /**
+     * Validates the "id" field of an amoeba.
+     * @param {string} id - The ID to validate.
+     * @param {number} index - Index of the amoeba in the array for debugging.
      */
-    static fromYAML(yaml) {
-        try {
-            const json = YAML.parse(yaml); // Convert YAML to JSON
-            AmoebaFlowParser.validateStructure(json); // Validate structure
-            return AmoebaFlowParser.parse(json);
-        } catch (error) {
-            throw new Error(`Invalid YAML: ${error.message}`);
+    static validateId(id, index) {
+        if (typeof id !== 'string' || id.trim() === '') {
+            throw new Error(
+                `Invalid "id" for amoeba at index ${index}. Expected a non-empty string.`
+            );
         }
     }
 
     /**
-     * Creates an AmoebaSpace from a Mermaid flow definition.
-     * @param {string} mermaidText - Mermaid definition.
-     * @returns {AmoebaSpace}
+     * Validates the "func" field of an amoeba.
+     * @param {string|function} func - The function to validate.
+     * @param {string} amoebaId - The ID of the amoeba for debugging.
      */
-    static fromMermaid(mermaidText) {
-        try {
-            const parsedData = AmoebaFlowParser.parseMermaid(mermaidText);
-            AmoebaFlowParser.validateStructure(parsedData); // Validate structure
-            return AmoebaFlowParser.parse(parsedData);
-        } catch (error) {
-            throw new Error(`Invalid Mermaid syntax: ${error.message}`);
+    static validateFunc(func, amoebaId) {
+        if (typeof func !== 'string' && typeof func !== 'function') {
+            throw new Error(
+                `Amoeba "${amoebaId}" must have a valid "func" (string or function).`
+            );
         }
+    }
+
+    /**
+     * Validates the "outputEvents" field of an amoeba.
+     * @param {Array} outputEvents - The output events to validate.
+     * @param {string} amoebaId - The ID of the amoeba for debugging.
+     */
+    static validateOutputEvents(outputEvents, amoebaId) {
+        if (outputEvents === undefined) {
+            return; // outputEvents is optional
+        }
+
+        if (!Array.isArray(outputEvents)) {
+            throw new Error(`Amoeba "${amoebaId}" must have an "outputEvents" array.`);
+        }
+
+        outputEvents.forEach((event, index) => {
+            if (typeof event === 'string') {
+                // Valid direct event
+                return;
+            }
+
+            if (
+                typeof event === 'object' &&
+                typeof event.condition === 'string' &&
+                Array.isArray(event.outputEvents)
+            ) {
+                // Attempt to compile the condition to ensure it's a valid function
+                try {
+                    const conditionFunc = new Function(`return ${event.condition}`)();
+                    if (typeof conditionFunc !== 'function') {
+                        throw new Error('Condition is not a function.');
+                    }
+                } catch (error) {
+                    throw new Error(
+                        `Invalid condition in "outputEvents" at index ${index} in amoeba "${amoebaId}": ${error.message}`
+                    );
+                }
+                // Valid conditional event
+                return;
+            }
+
+            throw new Error(
+                `Invalid "outputEvents" format at index ${index} in amoeba "${amoebaId}". ` +
+                `Expected a string or an object with "condition" and "outputEvents".`
+            );
+        });
     }
 
     /**
@@ -67,73 +130,46 @@ export class AmoebaFlowParser {
      * @returns {AmoebaSpace}
      */
     static parse(flow) {
+
         const space = new AmoebaSpace();
 
-        // Add amoebas
-        flow.amebas.forEach(({ id, func, inputs }) => {
-            const resolvedFunc = AmoebaFlowParser.resolveFunction(func);
-            space.addAmoeba(id, resolvedFunc, inputs || []);
-        });
 
-        // Connect amoebas
-        flow.connections.forEach(({ from, to }) => {
-            space.connect(from, to);
+        flow.amebas.forEach(({ id, func, inputs = [], outputEvents = [] }) => {
+            const resolvedFunc = AmoebaFlowParser.resolveFunction(func);
+
+            const inputEvents = inputs.map(input =>
+                typeof input === 'string' ? input : input.name
+            );
+
+            space.addAmoeba({
+                id,
+                func: resolvedFunc,
+                expectedEvents: inputEvents,
+                outputEvents 
+            });
         });
 
         return space;
     }
 
     /**
-     * Parses a Mermaid text into a JSON-like flow object.
-     * @param {string} mermaidText
-     * @returns {Object} - Equivalent flow.
+     * Creates an AmoebaSpace from a YAML flow.
+     * @param {string} yaml - YAML definition.
+     * @returns {AmoebaSpace}
      */
-    static parseMermaid(mermaidText) {
-        const lines = mermaidText.split('\n').map(line => line.trim()).filter(Boolean);
-    
-        const amebas = [];
-        const connections = [];
-    
-        lines.forEach(line => {
-            // Match nodes with Mermaid syntax like A((x => x + 1|input.x))
-            const nodeMatch = line.match(/^(\w+)\(\(\s*([^|]+)\|\s*(.+?)\s*\)\)$/);
-            if (nodeMatch) {
-                const [, id, func, inputs] = nodeMatch;
-    
-                const parsedInputs = inputs.split(',').map(input => input.trim());
-                amebas.push({ id, func: func.trim(), inputs: parsedInputs });
-                return;
-            }
-    
-            // Match connections like A --> B
-            const connectionMatch = line.match(/^(\w+)\s*-->\s*(\w+)$/);
-            if (connectionMatch) {
-                const [, from, to] = connectionMatch;
-                connections.push({ from, to });
-                return;
-            }
-        });
-    
-        if (amebas.length === 0 && connections.length === 0) {
-            throw new Error('Invalid Mermaid syntax. No valid nodes or connections found.');
+    static fromYAML(yaml) {
+        try {
+            // Parse YAML to JSON-like object
+            const flow = YAML.parse(yaml);
+            
+            AmoebaFlowParser.validateStructure(flow);
+
+            return AmoebaFlowParser.parse(flow);
+        } catch (error) {
+            throw new Error(`Invalid YAML: ${error.message}`);
         }
-    
-        // Post-process connections to ensure completeness
-        connections.forEach(({ from, to }) => {
-            const targetAmoeba = amebas.find(a => a.id === to);
-            if (targetAmoeba) {
-                const fromEvent = `${from}.output`;
-                if (!targetAmoeba.inputs.includes(fromEvent)) {
-                    targetAmoeba.inputs.push(fromEvent);
-                }
-            }
-        });
-    
-        console.log("Check amebas in Mermaid:", amebas);
-        console.log("Check connections in Mermaid:", connections);
-        return { amebas, connections };
     }
-    
+
     /**
      * Converts a string representation of a function to an executable function.
      * @param {string | Function} func
@@ -153,29 +189,4 @@ export class AmoebaFlowParser {
         throw new Error(`Invalid function: ${func}`);
     }
 
-    /**
-     * Validates the structure of a flow object.
-     * @param {Object} flow - Flow to validate.
-     * @throws {Error} If the structure is invalid.
-     */
-    static validateStructure(flow) {
-        if (!Array.isArray(flow.amebas) || !Array.isArray(flow.connections)) {
-            throw new Error('Invalid flow structure. Expected keys: "amebas" (array) and "connections" (array).');
-        }
-
-        flow.amebas.forEach(({ id, func }) => {
-            if (typeof id !== 'string' || id.trim() === '') {
-                throw new Error('Each amoeba must have a valid "id" (non-empty string).');
-            }
-            if (typeof func !== 'string' && typeof func !== 'function') {
-                throw new Error(`Amoeba "${id}" must have a valid "func" (string or function).`);
-            }
-        });
-
-        flow.connections.forEach(({ from, to }) => {
-            if (typeof from !== 'string' || from.trim() === '' || typeof to !== 'string' || to.trim() === '') {
-                throw new Error('Each connection must specify "from" and "to" as non-empty strings.');
-            }
-        });
-    }
 }

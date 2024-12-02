@@ -1,47 +1,78 @@
 export class Amoeba {
-    constructor(id, func, eventEmitter, storeResults = false, expectedEvents = []) {
-        this.id = id; 
-        this.func = func; 
-        this.expectedEvents = expectedEvents; 
-        this.receivedData = {}; 
-        this.eventEmitter = eventEmitter; 
+    constructor({ id, func, eventEmitter, storeResults = false, expectedEvents = [], outputEvents = [], outputRules = [] }) {        
+        if (!id || typeof id !== 'string') {
+            throw new Error("Amoeba 'id' is required and must be a string.");
+        }
+        if (typeof func !== 'function') {
+            throw new Error("Amoeba 'func' is required and must be a function.");
+        }
+        if (!eventEmitter || typeof eventEmitter.emit !== 'function' || typeof eventEmitter.on !== 'function') {
+            throw new Error("Amoeba 'eventEmitter' is required and must be a valid EventEmitter instance.");
+        }
+        this.id = id;
+        this.func = func;
+        this.eventEmitter = eventEmitter;
         this.storeResults = storeResults;
-        this.executed = false; 
-        this.ready = false;        
+        this.expectedEvents = expectedEvents;        
+        const executedEvent = `${id}.executed`;
+        this.outputEvents = [executedEvent, ...outputEvents.filter(event => event !== executedEvent)];
+        this.outputRules = outputRules;
+        this.receivedData = {};
+        this.ready = false;
         console.log(`[${this.id}] Created with expected events:`, this.expectedEvents);
     }
-    
+
     setReady() {
         this.ready = true;
         this.checkAndExecute();
     }
-    
+
     receive(eventName, data) {
         this.receivedData[eventName] = data;
-        console.log(`[${this.id}] Current input state:`, this.receivedData);        
+        console.log(`[${this.id}] Receive input state:`, this.receivedData);
         this.checkAndExecute();
     }
 
     async checkAndExecute() {
         const receivedEvents = Object.keys(this.receivedData);
-        if (this.ready && receivedEvents.length === this.expectedEvents.length && !this.executed) {
+        if (this.ready && receivedEvents.length === this.expectedEvents.length) {
             const args = this.expectedEvents.map(eventName => this.receivedData[eventName]);
             const output = await this.func(...args);
             if (this.storeResults) {
-                this.result = output; 
+                this.result = output;
             }
             this.emit(output);
-            this.executed = true;
         }
     }
 
     emit(output) {
-        const eventName = `${this.id}.output`;
+        if (this.eventEmitter && Object.keys(this.eventEmitter.events).length > 0) {            
+            this.outputEvents
+                .filter(event => typeof event === "string")
+                .forEach(eventName => {
+                    console.log(`[${this.id}] Emitting output event: "${eventName}" with data:`, output);
+                    this.eventEmitter.emit(eventName, output);
+                });    
+            this.outputEvents
+                .filter(event => typeof event === "object" && event.condition)
+                .forEach(({ condition, outputEvents }) => {
+                    try {                   
+                        const conditionFunc = new Function(`return ${condition}`)();
+                        if (typeof conditionFunc !== 'function') {
+                            throw new Error('Condition is not a function.');
+                        }
     
-        if (this.eventEmitter && Object.keys(this.eventEmitter.events).length > 0) { 
-            // Solo emitir si hay listeners registrados
-            console.log(`[${this.id}] Emitting event: "${eventName}" with data:`, output);
-            this.eventEmitter.emit(eventName, output);
+                        const isConditionMet = conditionFunc(output);   
+                        if (isConditionMet) {
+                            outputEvents.forEach(eventName => {
+                                console.log(`[${this.id}] Emitting conditional event: "${eventName}" with data:`, output);
+                                this.eventEmitter.emit(eventName, output);
+                            });
+                        }
+                    } catch (error) {
+                        console.error(`[${this.id}] Error evaluating condition "${condition}": ${error.message}`);
+                    }
+                });
         } else {
             console.log(`[${this.id}] Event not emitted because no listeners are registered.`);
         }

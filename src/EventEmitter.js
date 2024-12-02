@@ -24,10 +24,10 @@ export class EventEmitter {
     // Emit an event, notifying all listeners
     emit(event, data) {
         if (this.events[event]) {
-            console.log(`[EventEmitter] Emitting event "${event}" to ${this.events[event].length} listener(s).`);
+            //console.log(`[EventEmitter] Emitting event "${event}" to ${this.events[event].length} listener(s).`);
             this.events[event].forEach(listener => listener(data));
         } else {
-            console.log(`[EventEmitter] No listeners registered for event "${event}".`);
+            //console.log(`[EventEmitter] No listeners registered for event "${event}".`);
         }
     }
 
