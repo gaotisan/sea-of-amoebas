@@ -100,5 +100,6 @@ MIT License. See LICENSE for details.
 
 ## Contact
 Created by gaotisan. Feel free to reach out via GitHub Issues.
+You can also connect with me on [LinkedIn](https://www.linkedin.com/in/santiago-ochoa-ceresuela/).
 
 
