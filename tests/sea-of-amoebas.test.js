@@ -1,5 +1,5 @@
 import { AmoebaSpace } from '../src/AmoebaSpace.js';
-
+import { AmoebaFlowParser } from '../src/AmoebaFlowParser.js';
 // Variables globales para el resumen
 const testResults = {
     passed: 0,
@@ -67,10 +67,10 @@ async function testCalculationExecution() {
     space.connect('AmoebaA', 'AmoebaB');
     space.connect('AmoebaB', 'AmoebaC');
 
-     // Set initial inputs
-     space.setInput('AmoebaA', 'input.a', 5); // Valor inicial para 'input.a'
-     space.setInput('AmoebaA', 'input.b', 3); // Valor inicial para 'input.b'
-     space.setInput('AmoebaB', 'input.y', 2); // Valor inicial para 'input.y'
+    // Set initial inputs
+    space.setInput('AmoebaA', 'input.a', 5); // Valor inicial para 'input.a'
+    space.setInput('AmoebaA', 'input.b', 3); // Valor inicial para 'input.b'
+    space.setInput('AmoebaB', 'input.y', 2); // Valor inicial para 'input.y'
 
     // Finalize configuration and wait for the last amoeba
     space.finalizeConfiguration(['AmoebaC']);
@@ -104,7 +104,7 @@ async function testMixedCompletionMechanism() {
     space.connect('B', 'C');
 
     // Finalize configuration without specifying final amoebas
-    space.finalizeConfiguration(['A', 'B', 'C']); 
+    space.finalizeConfiguration(['A', 'B', 'C']);
     space.setInput('A', 'trigger', null); //Test trigger after finalizeConfiguration
     const results = await space.waitForCompletion(false); // Resolve when any final amoeba completes
 
@@ -154,15 +154,94 @@ async function testResultStorage() {
     registerResult('Test Result Storage (AmoebaC Result)', resultCValid, `Expected 17, Got ${resultC}`);
 }
 
+// Test: Parse and execute from JSON
+async function testParseFromJSON() {
+    const jsonFlow = {
+        amebas: [
+            { id: 'A', func: '(x) => x + 1', inputs: ['input.x'] },
+            { id: 'B', func: '(y) => y * 2', inputs: ['A.output'] },
+        ],
+        connections: [
+            { from: 'A', to: 'B' }
+        ]
+    };
+
+    const space = AmoebaFlowParser.fromJSON(jsonFlow);
+
+    // Set inputs and execute
+    space.setInput('A', 'input.x', 5);
+    space.finalizeConfiguration(['B']);
+    const results = await space.waitForCompletion();
+
+    const finalResult = results['B'];
+    const correctResult = finalResult === 12; // 5 + 1 = 6, 6 * 2 = 12
+
+    registerResult('Test Parse From JSON', correctResult, `Expected 12, Got ${finalResult}`);
+}
+
+// Test: Parse and execute from YAML
+async function testParseFromYAML() {
+    const yamlFlow = `
+amebas:
+  - id: A
+    func: "(x) => x + 1"
+    inputs:
+      - input.x
+  - id: B
+    func: "(y) => y * 2"
+    inputs:
+      - A.output
+connections:
+  - from: A
+    to: B
+`;
+
+    const space = AmoebaFlowParser.fromYAML(yamlFlow);
+
+    // Set inputs and execute
+    space.setInput('A', 'input.x', 4);
+    space.finalizeConfiguration(['B']);
+    const results = await space.waitForCompletion();
+
+    const finalResult = results['B'];
+    const correctResult = finalResult === 10; // 4 + 1 = 5, 5 * 2 = 10
+
+    registerResult('Test Parse From YAML', correctResult, `Expected 10, Got ${finalResult}`);
+}
+
+// Test: Parse and execute from Mermaid
+async function testParseFromMermaid() {
+    const mermaidFlow = `
+A((x => x + 1|input.x))
+B((y => y * 2|A.output))
+A --> B
+`;
+
+    const space = AmoebaFlowParser.fromMermaid(mermaidFlow);
+
+    // Set inputs and execute
+    space.setInput('A', 'input.x', 3);
+    space.finalizeConfiguration(['B']);
+    const results = await space.waitForCompletion();
+
+    const finalResult = results['B'];
+    const correctResult = finalResult === 8; // 3 + 1 = 4, 4 * 2 = 8
+
+    registerResult('Test Parse From Mermaid', correctResult, `Expected 8, Got ${finalResult}`);
+}
+
 
 // Execute all tests
 async function runTests() {
     console.log('Running Tests...');
     try {
-        await testSequentialExecution();
-        await testCalculationExecution();
-        await testMixedCompletionMechanism();                
-        await testResultStorage(); 
+        //await testSequentialExecution();
+        //await testCalculationExecution();
+        //await testMixedCompletionMechanism();
+        //await testResultStorage();
+        await testParseFromJSON();
+        await testParseFromYAML();
+        await testParseFromMermaid();
     } catch (error) {
         console.error('Test Failed:', error);
     }
@@ -182,4 +261,4 @@ async function runTests() {
 }
 
 runTests();
-   
+

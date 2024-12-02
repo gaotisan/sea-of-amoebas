@@ -1,37 +1,45 @@
 export class EventEmitter {
     constructor() {
-        this.events = {}; // Diccionario para almacenar eventos y sus listeners
+        this.events = {}; // Dictionary to store events and their listeners
     }
 
-    // Suscribir un listener a un evento
+    // Subscribe a listener to an event
     on(event, listener) {
         if (!this.events[event]) {
             this.events[event] = [];
         }
-        // Verificar si el listener ya está registrado
-        const listenerExists = this.events[event].some(registeredListener => registeredListener === listener);
-        if (!listenerExists) {
+        // Prevent duplicate listeners for the same event
+        if (!this.events[event].includes(listener)) {
             this.events[event].push(listener);
         }
     }
 
-    // Eliminar un listener de un evento
+    // Unsubscribe a listener from an event
     off(event, listener) {
         if (this.events[event]) {
             this.events[event] = this.events[event].filter(registeredListener => registeredListener !== listener);
         }
     }
 
-    // Emitir un evento, notificando a todos los listeners
+    // Emit an event, notifying all listeners
     emit(event, data) {
         if (this.events[event]) {
+            console.log(`[EventEmitter] Emitting event "${event}" to ${this.events[event].length} listener(s).`);
             this.events[event].forEach(listener => listener(data));
+        } else {
+            console.log(`[EventEmitter] No listeners registered for event "${event}".`);
         }
     }
 
-    // Limpiar todas las suscripciones
+    // Clear all subscriptions
     clearAll() {
-        this.events = {}; // Limpia todas las entradas        
+        console.log(`[EventEmitter] Clearing all event listeners.`);
+        this.events = {}; // Clear all entries
+    }
+
+    // Get all listeners for debugging or inspection
+    getListeners(event) {
+        return this.events[event] || [];
     }
 }
 

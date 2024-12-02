@@ -3,15 +3,15 @@ import EventEmitter from './EventEmitter.js';
 
 export class AmoebaSpace {
     constructor(storeResults = false) {
-        this.amoebas = {}; 
-        this.eventEmitter = new EventEmitter(); 
-        this.finalAmoebas = []; 
+        this.amoebas = {};
+        this.eventEmitter = new EventEmitter();
+        this.finalAmoebas = [];
         this.storeResults = storeResults;
     }
 
     addAmoeba(id, func, expectedEvents = []) {
         const ameba = new Amoeba(id, func, this.eventEmitter, this.storeResults, expectedEvents);
-        this.amoebas[id] = ameba;        
+        this.amoebas[id] = ameba;
         if (expectedEvents) {
             expectedEvents.forEach(eventName => {
                 this.eventEmitter.on(eventName, (data) => {
@@ -25,11 +25,16 @@ export class AmoebaSpace {
         const fromEvent = `${fromId}.output`;
         const toAmoeba = this.amoebas[toId];
         if (toAmoeba) {
-            toAmoeba.expectedEvents.push(fromEvent);
-            this.eventEmitter.on(fromEvent, (data) => {
-                toAmoeba.receive(fromEvent, data);
-            });
-            console.log(`Connected ${fromId} to ${toId}: ${toAmoeba.expectedEvents}`);
+            if (!toAmoeba.expectedEvents.includes(fromEvent)) {
+                toAmoeba.expectedEvents.push(fromEvent); // Ensure no duplicates
+                this.eventEmitter.on(fromEvent, (data) => {
+                    toAmoeba.receive(fromEvent, data);
+                });
+                console.log(`Connected ${fromId} to ${toId}: ${toAmoeba.expectedEvents}`);
+            } else {
+                console.log(`Connection already exist: ${fromId} to ${toId}`);
+            }
+
         } else {
             throw new Error(`Amoeba with ID ${toId} does not exist.`);
         }
@@ -91,7 +96,7 @@ export class AmoebaSpace {
         }
     }
 
-    stopAll() {        
+    stopAll() {
         this.eventEmitter.clearAll(); // Limpiar suscripciones
     }
 }

@@ -18,7 +18,7 @@ export class Amoeba {
     
     receive(eventName, data) {
         this.receivedData[eventName] = data;
-        console.log(`[${this.id}] Current input state:`, this.receivedData);
+        console.log(`[${this.id}] Current input state:`, this.receivedData);        
         this.checkAndExecute();
     }
 

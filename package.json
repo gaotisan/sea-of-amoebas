@@ -5,10 +5,16 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "test":  "node tests/sea-of-amoebas.test.js",
+    "test": "node tests/sea-of-amoebas.test.js",
     "start": "node index.js"
   },
-  "keywords": ["framework", "event-driven", "declarative", "asynchronous", "amoebas"],
+  "keywords": [
+    "framework",
+    "event-driven",
+    "declarative",
+    "asynchronous",
+    "amoebas"
+  ],
   "author": "gaotisan",
   "license": "MIT",
   "repository": {
@@ -19,7 +25,9 @@
     "url": "https://github.com/gaotisan/sea-of-amoebas/issues"
   },
   "homepage": "https://github.com/gaotisan/sea-of-amoebas#readme",
-  "dependencies": {},
+  "dependencies": {
+    "yaml": "^2.6.1"
+  },
   "devDependencies": {
     "eslint": "^8.50.0"
   }
