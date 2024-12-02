@@ -88,7 +88,7 @@ space.setInput('input.b', 3);
 space.setInput('input.y', 2);
 ```
 
-## Explore Advanced Examples
+### Explore Advanced Examples
 For more illustrative and complex examples, check the tests folder in the repository. It contains a variety of test cases showcasing advanced workflows, including conditional logic, branching, and modular designs.
 
 ### Supported Formats
