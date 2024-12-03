@@ -70,8 +70,8 @@ async function testSequentialExecution() {
 // Test: Chain execution with parameters
 async function testCalculationExecution() {
     const add = (a, b) => a + b;
-    const multiply  = (x, y) => x * y;
-    const increment  = async (z) => z + 1;
+    const multiply = (x, y) => x * y;
+    const increment = async (z) => z + 1;
 
     const space = new AmoebaSpace();
 
@@ -99,9 +99,9 @@ async function testCalculationExecution() {
     // Finalize configuration and wait for the last amoeba
     space.finalizeConfiguration();
     // Set initial inputs
-    space.setInput('input.a', 5); 
-    space.setInput('input.b', 3); 
-    space.setInput('input.y', 2); 
+    space.setInput('input.a', 5);
+    space.setInput('input.b', 3);
+    space.setInput('input.y', 2);
     const finalResult = await space.waitForAmoebaExecution('AmoebaC');
 
     // Validate results
@@ -233,7 +233,7 @@ async function testResultStorage() {
 
 async function testConditionalEventEmission() {
     const space = new AmoebaSpace();
-    
+
     space.addAmoeba({
         id: 'ConditionTrue',
         func: (x) => x * 2,
@@ -245,7 +245,7 @@ async function testConditionalEventEmission() {
             }
         ]
     });
-    
+
     space.addAmoeba({
         id: 'ConditionFalse',
         func: (x) => x + 2,
@@ -257,7 +257,7 @@ async function testConditionalEventEmission() {
             }
         ]
     });
-    
+
     let highValueTriggered = false;
     let lowValueTriggered = false;
 
@@ -297,7 +297,7 @@ async function testInvalidConditionHandling() {
     const space = new AmoebaSpace();
 
     let errorLogged = false;
-    
+
     const originalConsoleError = console.error;
     console.error = (message) => {
         if (message.includes('Error evaluating condition')) {
@@ -317,7 +317,7 @@ async function testInvalidConditionHandling() {
             }
         ]
     });
-    
+
     space.finalizeConfiguration();
     space.setInput('input.x', 5);
 
@@ -405,11 +405,11 @@ async function testParseFromJSON() {
     const amoebaA = space.amoebas['A'];
     const amoebaAValid =
         amoebaA &&
-        amoebaA.expectedEvents.includes('input.x') && 
-        amoebaA.outputEvents.some(event => event === 'Log') && 
+        amoebaA.expectedEvents.includes('input.x') &&
+        amoebaA.outputEvents.some(event => event === 'Log') &&
         amoebaA.outputEvents.some(
             event => typeof event === 'object' && event.condition && Array.isArray(event.outputEvents)
-        ); 
+        );
 
     registerResult(
         'Test Parse From JSON (Amoeba A Configuration)',
@@ -426,7 +426,7 @@ async function testParseFromJSON() {
     for (const input of inputs) {
         console.log(`Testing with input.x = ${input}`);
         space.setInput('input.x', input);
-        
+
         let expectedAmoebaId;
         const incremented = input + 1;
 
@@ -440,7 +440,7 @@ async function testParseFromJSON() {
                 expectedAmoebaId = 'B';
             }
         }
-        
+
         const result = await space.waitForAmoebaExecution(expectedAmoebaId);
         results.push({ input, result });
     }
@@ -492,15 +492,15 @@ amebas:
 
     // Parse the YAML to create the AmoebaSpace
     const space = AmoebaFlowParser.fromYAML(yamlFlow);
-        
+
     space.finalizeConfiguration(); // Finalize with B as the target amoeba
     // Define a promise to wait for the final amoeba's execution
     const finalPromise = space.waitForAmoebaExecution('B');
     space.setInput('input.x', 4); // Input for amoeba A
-    
+
     // Wait for the result of amoeba B
     const finalResult = await finalPromise;
-    
+
     const correctResult = finalResult === 10; // 4 + 1 = 5, 5 * 2 = 10
 
     registerResult(
@@ -508,7 +508,73 @@ amebas:
         correctResult,
         correctResult ? `Expected 10, Got ${finalResult}` : `Expected 10, Got ${finalResult}`
     );
+}
 
+async function testPerformance() {
+    const numAmoebas = 1000; // You can adjust this number
+    const space = new AmoebaSpace();
+
+    // Record initial memory usage
+    const initialMemory = process.memoryUsage().heapUsed;
+
+    // Start timing
+    const startTime = performance.now();
+
+    // Add a chain of amoebas
+    for (let i = 0; i < numAmoebas; i++) {
+        space.addAmoeba({
+            id: `Amoeba${i}`,
+            func: (input) => input + 1,
+            expectedEvents: i === 0 ? ['input.start'] : [`Amoeba${i - 1}.executed`],
+            outputEvents: [`Amoeba${i}.executed`]
+        });
+    }
+
+    // Finalize configuration
+    space.finalizeConfiguration();
+
+    // Set initial input to trigger the chain
+    space.setInput('input.start', 0);
+
+    // Wait for the last amoeba to execute
+    await space.waitForAmoebaExecution(`Amoeba${numAmoebas - 1}`);
+
+    // Stop timing
+    const endTime = performance.now();
+
+    // Record final memory usage
+    const finalMemory = process.memoryUsage().heapUsed;
+
+    // Calculate metrics
+    const totalTime = endTime - startTime;
+    const memoryUsed = finalMemory - initialMemory;
+
+    console.log(`Total time for executing ${numAmoebas} amoebas: ${totalTime.toFixed(2)} ms`);
+    console.log(`Memory used: ${(memoryUsed / 1024 / 1024).toFixed(2)} MB`);
+
+    // Set acceptable thresholds based on observed performance
+    const acceptableTimePerAmoeba = 5; // ms per amoeba
+    const acceptableMemoryPerAmoeba = 0.002; // MB per amoeba (2 KB)
+
+
+    const timeThreshold = numAmoebas * acceptableTimePerAmoeba;
+    const memoryThreshold = numAmoebas * acceptableMemoryPerAmoeba * 1024 * 1024;
+
+    // Validate performance
+    const performanceAcceptable = totalTime < timeThreshold;
+    const memoryAcceptable = memoryUsed < memoryThreshold;
+
+    registerResult(
+        'Test Performance Execution Time',
+        performanceAcceptable,
+        `Expected less than ${timeThreshold.toFixed(2)} ms, got ${totalTime.toFixed(2)} ms`
+    );
+
+    registerResult(
+        'Test Performance Memory Usage',
+        memoryAcceptable,
+        `Expected less than ${(memoryThreshold / 1024 / 1024).toFixed(2)} MB, got ${(memoryUsed / 1024 / 1024).toFixed(2)} MB`
+    );
 }
 
 async function runTest(testFunction, testName) {
@@ -531,6 +597,7 @@ async function runTests() {
     await runTest(testInvalidConditionHandling, "Test Invalid Conditional Handling")
     await runTest(testParseFromJSON, 'Test Parse From JSON');
     await runTest(testParseFromYAML, 'Test Parse From YAML');
+    await runTest(testPerformance, "Test Performance");
 
     // Display summary
     console.log('\n--- Test Summary ---');
