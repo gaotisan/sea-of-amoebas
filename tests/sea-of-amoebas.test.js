@@ -269,15 +269,24 @@ async function testConditionalEventEmission() {
         lowValueTriggered = true;
     });
 
-
-    space.finalizeConfiguration();
-
+    // Ensures all amoebas are "ready" to process inputs and their listeners are set up.
+    // Without this, inputs won't trigger amoeba execution.
+    space.finalizeConfiguration();  
+    // Sets up a promise that waits for the 'ConditionTrue.executed' &  'ConditionFalse.executed' events to resolve.
+    // Ensures no event is missed if inputs trigger execution after this point.
     const promiseConditionTrue = space.waitForAmoebaExecution('ConditionTrue');
     const promiseConditionFalse = space.waitForAmoebaExecution('ConditionFalse');
 
+    // Triggers an input event for 'input.x' with a value of 6.
+    // This input will propagate through the amoebas based on their configuration.
     space.setInput('input.x', 6);
 
+    // Waits for the 'ConditionTrue' amoeba to execute and resolve its promise.
+    // Ensures the flow dependent on this result does not proceed prematurely.
     await promiseConditionTrue;
+
+    // Waits for the 'ConditionFalse' amoeba to execute and resolve its promise.
+    // Synchronizes with the completion of this amoeba’s execution.
     await promiseConditionFalse;
 
     registerResult(

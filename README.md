@@ -88,7 +88,7 @@ space.setInput('input.b', 3);
 space.setInput('input.y', 2);
 ```
 
-## Explore Advanced Examples
+### Explore Advanced Examples
 For more illustrative and complex examples, check the tests folder in the repository. It contains a variety of test cases showcasing advanced workflows, including conditional logic, branching, and modular designs.
 
 ### Supported Formats
@@ -100,5 +100,6 @@ MIT License. See LICENSE for details.
 
 ## Contact
 Created by gaotisan. Feel free to reach out via GitHub Issues.
+You can also connect with me on [LinkedIn](https://www.linkedin.com/in/santiago-ochoa-ceresuela/).
 
 
