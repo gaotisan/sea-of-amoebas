@@ -8,7 +8,7 @@ Imagine effortlessly building and coordinating intricate workflows in your web a
 Sit back, relax, and let **SofA** handle the flow.
 
 ## Overview
-**SofA** enables developers to construct, manage, and execute complex workflows using a network of interconnected Amoeba Nodes. These nodes represent logical functions that process inputs triggered by events. By allowing you to queue functions into flow
+**SofA** enables developers to construct, manage, and execute complex workflows using a network of interconnected Amoeba Nodes. These nodes represent logical functions that process inputs triggered by events. By allowing you to queue functions into flows.
 The framework's declarative nature supports JSON and YAML syntax, ensuring clarity and flexibility in defining workflows. Its scalability and modularity make it ideal for both small and large-scale systems.
 
 ## Core Features
