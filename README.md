@@ -3,7 +3,7 @@ A declarative, event-driven framework for modular and scalable workflow executio
 
 Imagine effortlessly building and coordinating intricate workflows in your web application, chaining functions and creating dynamic process flows. With **SofA**, you can seamlessly integrate asynchronous processes, conditionally trigger events, and handle complex data interactions—enabling scenarios like specialized AI assistants collaborating and queuing tasks, where one assistant's output becomes another's input.
 
-**SofA** transforms your codebase into a dynamic, event-driven environment, allowing your application to handle everything from routine tasks to sophisticated AI-driven operations. The best part? It's so intuitive and efficient, it's like coding from the comfort of your couch.
+The best part? It's so intuitive and efficient, it's like coding from the comfort of your couch.
 
 Sit back, relax, and let **SofA** handle the flow.
 
@@ -18,7 +18,7 @@ Sit back, relax, and let **SofA** handle the flow.
     - Nodes can emit multiple output events *(e1, e2, ..., em)*, enabling branching and parallel workflows.
     - Conditional events allow nodes to evaluate dynamic conditions and emit specific events based on their results, providing fine-grained control over process flows.
 3. **Modularity and Scalability:**
-    - Event emitters can be shared across multiple AmoebaSpaces, allowing interconnected workflows.
+    - Event emitters can be shared across multiple AmoebaSeas, allowing interconnected workflows.
     - Define your "*sea of Amoebas*" in modular parts, simplifying complex systems and allowing the reuse or extension of existing definitions.
 4. **Asynchronous Support:**
     - Fully compatible with both synchronous and asynchronous functions.
@@ -40,39 +40,39 @@ npm install
 
 ### Basic Example
 ```javascript
-import { AmoebaSpace } from 'sea-of-amoebas';
+import { AmoebaSea } from 'sea-of-amoebas';
 // Define functions
 const add = (a, b) => a + b;
 const multiply = (x, y) => x * y;
 const increment = async (z) => z + 1;
 
-const space = new AmoebaSpace();
+const sofa = new AmoebaSea();
 // Add amoebas using the new object syntax
-space.addAmoeba({
+sofa.addAmoeba({
     id: 'AmoebaA',
     func: add,
     expectedEvents: ['input.a', 'input.b'],
     outputEvents: ['AmoebaB.input']
 });
-space.addAmoeba({
+sofa.addAmoeba({
     id: 'AmoebaB',
     func: multiply,
     expectedEvents: ['AmoebaB.input', 'input.y'],
     outputEvents: ['AmoebaC.input']
 });
-space.addAmoeba({
+sofa.addAmoeba({
     id: 'AmoebaC',
     func: increment,
     expectedEvents: ['AmoebaC.input']
 });
 // Finalize configuration
-space.finalizeConfiguration();
+sofa.finalizeConfiguration();
 // Set initial inputs
-space.setInput('input.a', 5); //Initial value for 'input.a'
-space.setInput('input.b', 3); //Initial value for 'input.b'
-space.setInput('input.y', 2); //Initial value for 'input.y'
+sofa.setInput('input.a', 5); //Initial value for 'input.a'
+sofa.setInput('input.b', 3); //Initial value for 'input.b'
+sofa.setInput('input.y', 2); //Initial value for 'input.y'
 // Wait for the last amoeba to execute
-const finalResult = await space.waitForAmoebaExecution('AmoebaC');
+const finalResult = await sofa.waitForAmoebaExecution('AmoebaC');
 ```
 
 ### Define a Flow with JSON
@@ -127,8 +127,8 @@ const jsonFlow = {
         // While it does not define explicit output events to pass its result to another amoeba,
         // every amoeba emits a default event named `ID.executed` upon completion.
         // This allows you to retrieve its result if needed.
-        // Example: Use `await space.waitForAmoebaExecution("D")` to wait for its execution
-        // or `await space.waitForOutputEvent("D.executed")` to directly capture the emitted event.
+        // Example: Use `await sea.waitForAmoebaExecution("D")` to wait for its execution
+        // or `await sea.waitForOutputEvent("D.executed")` to directly capture the emitted event.
         {
             id: 'D',
             func: "(w) => w % 3",
@@ -145,14 +145,14 @@ const jsonFlow = {
     ]
 };
 // Parse the JSON and create the workflow
-const space = AmoebaFlowParser.fromJSON(jsonFlow);
+const sofa = AmoebaFlowParser.fromJSON(jsonFlow);
 // Finalize configuration
-space.finalizeConfiguration();
+sofa.finalizeConfiguration();
 // Test the workflow with different inputs
 const inputs = [3, 6, 10];
 for (const input of inputs) {
     console.log(`Processing input: ${input}`);
-    space.setInput('input.x', input);    
+    sofa.setInput('input.x', input);    
 }
 ```
 
