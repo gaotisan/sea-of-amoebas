@@ -500,7 +500,7 @@ amoebas:
 
 
     // Parse the YAML to create the AmoebaSea
-    const sea= AmoebaFlowParser.fromYAML(yamlFlow);
+    const sea = AmoebaFlowParser.fromYAML(yamlFlow);
 
     sea.finalizeConfiguration(); // Finalize with B as the target amoeba
     // Define a promise to wait for the final amoeba's execution
@@ -521,7 +521,7 @@ amoebas:
 
 async function testPerformance() {
     const numAmoebas = 1000; // You can adjust this number
-    const sea= new AmoebaSea();
+    const sea = new AmoebaSea();
 
     // Record initial memory usage
     const initialMemory = process.memoryUsage().heapUsed;
@@ -592,7 +592,7 @@ async function testExampleWeb1() {
     const multiply = (x, y) => x * y;
     const increment = async (z) => z + 1;
 
-    const sea= new AmoebaSea();
+    const sea = new AmoebaSea();
     // Add amoebas using the new object syntax
     sea.addAmoeba({
         id: 'AmoebaA',
@@ -619,7 +619,6 @@ async function testExampleWeb1() {
     sea.setInput('input.y', 2); //Initial value for 'input.y'
     // Wait for the last amoeba to execute
     const finalResult = await sea.waitForAmoebaExecution('AmoebaC');
-
     // Validate the result
     const correctResult = finalResult === 17;
     registerResult(
@@ -629,7 +628,7 @@ async function testExampleWeb1() {
     );
 }
 
-async function testExampleWeb2() {
+async function testExampleWeb2() {    
     // Define the workflow as a JavaScript object
     const jsonFlow = {
         amoebas: [
@@ -686,8 +685,9 @@ async function testExampleWeb2() {
                 inputs: ['D.Input']
             },
             // Logger: Logs all incoming data
-            // If no input events are explicitly specified, the amoeba defaults to listening for events with its own name.
-            // In this case, "Logger" listens for "Logger" events, simplifying the definition for single-input functions.
+            // If no input events are specified, the amoeba listens for events matching its name by default.
+            // This simplify the definition for single-input functions.
+            // In this case, "Logger" listens for "Logger" events        
             {
                 id: 'Logger',
                 func: "(data) => console.log(`Log: ${data}`)"
@@ -695,7 +695,7 @@ async function testExampleWeb2() {
         ]
     };
     // Parse the JSON and create the workflow
-    const sea= AmoebaFlowParser.fromJSON(jsonFlow);
+    const sea = AmoebaFlowParser.fromJSON(jsonFlow);
     // Finalize configuration
     sea.finalizeConfiguration();
     // Test the workflow with different inputs
@@ -734,7 +734,7 @@ async function testExampleWeb2() {
 }
 
 async function testInterconnectedAmoebaSeas() {
-    
+
     // First AmoebaSea
     const sea1 = new AmoebaSea();
     sea1.addAmoeba({
@@ -755,7 +755,7 @@ async function testInterconnectedAmoebaSeas() {
             console.log('Amoeba B1 executed');
             return x * 2;
         },
-        expectedEvents: ['sharedEvent']       
+        expectedEvents: ['sharedEvent']
     });
 
     // Finalize configurations
@@ -805,7 +805,7 @@ async function runTests() {
     await runTest(testPerformance, "Test Performance");
     await runTest(testInterconnectedAmoebaSeas, 'Test Interconnected AmoebaSeas');
     await runTest(testExampleWeb1, "Test Example Web Workflow");
-    await runTest(testExampleWeb2, "Test Example Web 2 - Conditional Flow Execution");    
+    await runTest(testExampleWeb2, "Test Example Web 2 - Conditional Flow Execution");
 
     // Display summary
     console.log('\n--- Test Summary ---');
