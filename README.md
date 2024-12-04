@@ -40,39 +40,39 @@ npm install
 
 ### Basic Example
 ```javascript
-import { AmoebaSpace } from 'sea-of-amoebas';
+import { AmoebaSea } from 'sea-of-amoebas';
 // Define functions
 const add = (a, b) => a + b;
 const multiply = (x, y) => x * y;
 const increment = async (z) => z + 1;
 
-const space = new AmoebaSpace();
+const sea = new AmoebaSpace();
 // Add amoebas using the new object syntax
-space.addAmoeba({
+sea.addAmoeba({
     id: 'AmoebaA',
     func: add,
     expectedEvents: ['input.a', 'input.b'],
     outputEvents: ['AmoebaB.input']
 });
-space.addAmoeba({
+sea.addAmoeba({
     id: 'AmoebaB',
     func: multiply,
     expectedEvents: ['AmoebaB.input', 'input.y'],
     outputEvents: ['AmoebaC.input']
 });
-space.addAmoeba({
+sea.addAmoeba({
     id: 'AmoebaC',
     func: increment,
     expectedEvents: ['AmoebaC.input']
 });
 // Finalize configuration
-space.finalizeConfiguration();
+sea.finalizeConfiguration();
 // Set initial inputs
-space.setInput('input.a', 5); //Initial value for 'input.a'
-space.setInput('input.b', 3); //Initial value for 'input.b'
-space.setInput('input.y', 2); //Initial value for 'input.y'
+sea.setInput('input.a', 5); //Initial value for 'input.a'
+sea.setInput('input.b', 3); //Initial value for 'input.b'
+sea.setInput('input.y', 2); //Initial value for 'input.y'
 // Wait for the last amoeba to execute
-const finalResult = await space.waitForAmoebaExecution('AmoebaC');
+const finalResult = await sea.waitForAmoebaExecution('AmoebaC');
 ```
 
 ### Define a Flow with JSON
@@ -145,14 +145,14 @@ const jsonFlow = {
     ]
 };
 // Parse the JSON and create the workflow
-const space = AmoebaFlowParser.fromJSON(jsonFlow);
+const sea = AmoebaFlowParser.fromJSON(jsonFlow);
 // Finalize configuration
-space.finalizeConfiguration();
+sea.finalizeConfiguration();
 // Test the workflow with different inputs
 const inputs = [3, 6, 10];
 for (const input of inputs) {
     console.log(`Processing input: ${input}`);
-    space.setInput('input.x', input);    
+    sea.setInput('input.x', input);    
 }
 ```
 
