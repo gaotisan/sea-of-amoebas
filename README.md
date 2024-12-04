@@ -7,16 +7,15 @@ Imagine effortlessly building and coordinating intricate workflows in your web a
 
 Sit back, relax, and let **SofA** handle the flow.
 
-## Overview
-**SofA** enables developers to construct, manage, and execute complex workflows using a network of interconnected Amoeba Nodes. These nodes represent logical functions that process inputs triggered by events. By allowing you to queue functions into flows.
-The framework's declarative nature supports JSON and YAML syntax, ensuring clarity and flexibility in defining workflows. Its scalability and modularity make it ideal for both small and large-scale systems.
+## Overview and Features
+**SofA** enables developers to construct, manage, and execute complex workflows using a network of interconnected Amoeba Nodes. These nodes represent logical functions, modeled as *f(x<sub>1</sub>, x<sub>2</sub>, ..., x<sub>n</sub>)*, that process inputs triggered by events. By queuing functions into flows, **SofA** provides a powerful and modular framework for orchestrating dynamic, event-driven processes.
 
-## Core Features
+### Key Features
 1. **Event-Driven Execution:**
-    - Nodes *f(x<sub>1</sub>, x<sub>2</sub>, ..., x<sub>n</sub>)* execute only after receiving all required inputs as events.
+    - Amoebas execute only after receiving all required inputs as events.
     - Events can carry data from simple primitives to complex objects.
 2. **Flexible Output Events:**
-    - Nodes can emit multiple output events (e1, e2, ..., em), enabling branching and parallel workflows.
+    - Nodes can emit multiple output events *(e1, e2, ..., em)*, enabling branching and parallel workflows.
     - Conditional events allow nodes to evaluate dynamic conditions and emit specific events based on their results, providing fine-grained control over process flows.
 3. **Modularity and Scalability:**
     - Event emitters can be shared across multiple AmoebaSpaces, allowing interconnected workflows.
