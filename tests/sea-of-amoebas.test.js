@@ -733,6 +733,54 @@ async function testExampleWeb2() {
     );
 }
 
+async function testInterconnectedAmoebaSpaces() {
+    
+    // First AmoebaSpace
+    const space1 = new AmoebaSpace();
+    space1.addAmoeba({
+        id: 'A1',
+        func: (x) => {
+            console.log('Amoeba A1 executed');
+            return x + 1;
+        },
+        expectedEvents: ['input.start'],
+        outputEvents: ['sharedEvent']
+    });
+
+    // Second AmoebaSpace
+    const space2 = new AmoebaSpace({ eventEmitter: space1.eventEmitter });
+    space2.addAmoeba({
+        id: 'B1',
+        func: (x) => {
+            console.log('Amoeba B1 executed');
+            return x * 2;
+        },
+        expectedEvents: ['sharedEvent']       
+    });
+
+    // Finalize configurations
+    space1.finalizeConfiguration();
+    space2.finalizeConfiguration();
+
+    // Set initial input to space1
+    space1.setInput('input.start', 3);
+
+    // Wait for execution in space2
+    const result = await space2.waitForAmoebaExecution('B1');
+
+    // Validate result
+    const expected = (3 + 1) * 2; // A1: 3+1, B1: 4*2
+    const resultValid = result === expected;
+
+    registerResult(
+        'Test Interconnected AmoebaSpaces',
+        resultValid,
+        resultValid
+            ? `Expected ${expected}, Got ${result}`
+            : `Execution failed. Expected ${expected}, Got ${result}`
+    );
+}
+
 
 async function runTest(testFunction, testName) {
     try {
@@ -755,8 +803,9 @@ async function runTests() {
     await runTest(testParseFromJSON, 'Test Parse From JSON');
     await runTest(testParseFromYAML, 'Test Parse From YAML');
     await runTest(testPerformance, "Test Performance");
+    await runTest(testInterconnectedAmoebaSpaces, 'Test Interconnected AmoebaSpaces');
     await runTest(testExampleWeb1, "Test Example Web Workflow");
-    await runTest(testExampleWeb2, "Test Example Web 2 - Conditional Flow Execution");
+    await runTest(testExampleWeb2, "Test Example Web 2 - Conditional Flow Execution");    
 
     // Display summary
     console.log('\n--- Test Summary ---');
