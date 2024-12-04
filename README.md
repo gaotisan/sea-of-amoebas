@@ -136,8 +136,9 @@ const jsonFlow = {
             inputs: ['D.Input']
         },
         // Logger: Logs all incoming data
-        // If no input events are explicitly specified, the amoeba defaults to listening for events with its own name.
-        // In this case, "Logger" listens for "Logger" events, simplifying the definition for single-input functions.
+        // If no input events are specified, the amoeba listens for events matching its name by default.
+        // This simplify the definition for single-input functions.
+        // In this case, "Logger" listens for "Logger" events        
         {
             id: 'Logger',
             func: "(data) => console.log(`Log: ${data}`)"
