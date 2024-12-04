@@ -9,7 +9,7 @@ Sit back, relax, and let **SofA** handle the flow.
 
 ## Overview
 **SofA** enables developers to construct, manage, and execute complex workflows using a network of interconnected Amoeba Nodes. These nodes represent logical functions that process inputs triggered by events.
-The framework's declarative nature supports **JSON** and **YAML** syntax, ensuring clarity and flexibility in defining workflows. Its scalability and modularity make it ideal for both small and large-scale systems.
+The framework's declarative nature supports JSON and YAML syntax, ensuring clarity and flexibility in defining workflows. Its scalability and modularity make it ideal for both small and large-scale systems.
 
 ## Core Features
 1. **Event-Driven Execution:**
@@ -161,7 +161,7 @@ for (const input of inputs) {
 For more illustrative and complex examples, check the tests folder in the repository. It contains a variety of test cases showcasing advanced workflows, including conditional logic, branching, and modular designs.
 
 ## Supported Formats
-- **JSON**: Define Amoeba, inputs, and connections in a structured format.
+- **JSON**: Define amoeba, inputs, and connections in a structured format.
 - **YAML**: Similar to JSON but with more human-readable syntax.
 
 ## License
