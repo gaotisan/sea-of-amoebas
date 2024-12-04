@@ -13,7 +13,7 @@ The framework's declarative nature supports JSON and YAML syntax, ensuring clari
 
 ## Core Features
 1. **Event-Driven Execution:**
-    - Nodes (f(x<sub>1</sub>, x<sub>2</sub>, ..., x<sub>n</sub>)) execute only after receiving all required inputs as events.
+    - Nodes f(x<sub>1</sub>, x<sub>2</sub>, ..., x<sub>n</sub>) execute only after receiving all required inputs as events.
     - Events can carry data from simple primitives to complex objects.
 2. **Multiple Outputs:**
     - Nodes can emit multiple output events (e1, e2, ..., em), enabling branching and parallel workflows.
