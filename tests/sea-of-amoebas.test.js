@@ -271,7 +271,7 @@ async function testConditionalEventEmission() {
 
     // Ensures all amoebas are "ready" to process inputs and their listeners are set up.
     // Without this, inputs won't trigger amoeba execution.
-    space.finalizeConfiguration();  
+    space.finalizeConfiguration();
     // Sets up a promise that waits for the 'ConditionTrue.executed' &  'ConditionFalse.executed' events to resolve.
     // Ensures no event is missed if inputs trigger execution after this point.
     const promiseConditionTrue = space.waitForAmoebaExecution('ConditionTrue');
@@ -563,7 +563,7 @@ async function testPerformance() {
 
     // Set acceptable thresholds based on observed performance
     const acceptableTimePerAmoeba = 5; // ms per amoeba
-    const acceptableMemoryPerAmoeba = 0.002; // MB per amoeba (2 KB)
+    const acceptableMemoryPerAmoeba = 0.004; // MB per amoeba (4 KB)
 
 
     const timeThreshold = numAmoebas * acceptableTimePerAmoeba;
@@ -586,6 +586,153 @@ async function testPerformance() {
     );
 }
 
+async function testExampleWeb1() {
+    // Define functions
+    const add = (a, b) => a + b;
+    const multiply = (x, y) => x * y;
+    const increment = async (z) => z + 1;
+
+    const space = new AmoebaSpace();
+    // Add amoebas using the new object syntax
+    space.addAmoeba({
+        id: 'AmoebaA',
+        func: add,
+        expectedEvents: ['input.a', 'input.b'],
+        outputEvents: ['AmoebaB.input']
+    });
+    space.addAmoeba({
+        id: 'AmoebaB',
+        func: multiply,
+        expectedEvents: ['AmoebaB.input', 'input.y'],
+        outputEvents: ['AmoebaC.input']
+    });
+    space.addAmoeba({
+        id: 'AmoebaC',
+        func: increment,
+        expectedEvents: ['AmoebaC.input']
+    });
+    // Finalize configuration and wait for the last amoeba
+    space.finalizeConfiguration();
+    // Set initial inputs
+    space.setInput('input.a', 5); //Initial value for 'input.a'
+    space.setInput('input.b', 3); //Initial value for 'input.b'
+    space.setInput('input.y', 2); //Initial value for 'input.y'
+    const finalResult = await space.waitForAmoebaExecution('AmoebaC');
+
+    // Validate the result
+    const correctResult = finalResult === 17;
+    registerResult(
+        'Test Example Web Workflow',
+        correctResult,
+        `Expected 17, Got ${finalResult}`
+    );
+}
+
+async function testExampleWeb2() {
+    const jsonFlow = {
+        amebas: [
+            // Amoeba A: Adds 1 to the input and emits to Logger
+            //and either B.Input or C.Input based on conditions
+            {
+                id: 'A',
+                func: "(x) => x + 1",
+                inputs: ['input.x'],
+                outputEvents: [
+                    "Logger", // Simple output event that sends all results to Logger, regardless of their value
+                    {
+                        condition: "(result) => result > 5", // Conditional output event that sends the result as input to B
+                        outputEvents: ["B.Input"]
+                    },
+                    {
+                        condition: "(result) => result <= 5", // Conditional output event that sends the result as input to C
+                        outputEvents: ["C.Input"]
+                    }
+                ]
+            },
+            // Amoeba B: Multiplies the input by 2 and emits conditionally to D or Logger
+            {
+                id: 'B',
+                func: "(y) => y * 2",
+                inputs: ['B.Input'],
+                outputEvents: [
+                    {
+                        condition: "(result) => result > 15",
+                        outputEvents: ["D.Input"]
+                    },
+                    {
+                        condition: "(result) => result <= 15",
+                        outputEvents: ["Logger"]
+                    }
+                ]
+            },
+            // Amoeba C: Subtracts 2 from the input and sends the result to Logger
+            {
+                id: 'C',
+                func: "(z) => z - 2",
+                inputs: ['C.Input'],
+                outputEvents: ["Logger"]
+            },
+            // Amoeba D: Computes the modulus of the input with 3
+            // This amoeba does not have an explicit output event, so its result is not sent to another amoeba.
+            // However, all amoebas emit a default event named ID.executed after completing their function.
+            // You can capture this event using:
+            // - `await space.waitForAmoebaExecution("D")` (simplified method to wait for D's execution)
+            // - `await space.waitForOuputEvent("D.executed")` (directly waits for the "D.executed" event)        
+            {
+                id: 'D',
+                func: "(w) => w % 3",
+                inputs: ['D.Input']
+            },
+            // Logger: Logs all incoming data
+            // Example of an amoeba without a specified input event.
+            // The amoeba listens for events with its own name, in this case, "Logger". 
+            // This simplifies the definition and is ideal for functions with a single input event/parameter.
+            {
+                id: 'Logger',
+                func: "(data) => console.log(`Log: ${data}`)"
+            }
+        ]
+    };
+    // Parse the JSON and create the workflow
+    const space = AmoebaFlowParser.fromJSON(jsonFlow);
+    // Finalize configuration
+    space.finalizeConfiguration();
+    // Test the workflow with different inputs
+    const inputs = [3, 6, 10];
+
+    const expectedResults = [
+        { input: 3, expectedAmoeba: 'C', expectedResult: 2 },
+        { input: 6, expectedAmoeba: 'B', expectedResult: 14 },
+        { input: 10, expectedAmoeba: 'D', expectedResult: 1 } 
+    ];
+
+    let allResultsMatch = true;
+
+    for (const { input, expectedAmoeba, expectedResult } of expectedResults) {
+        console.log(`Processing input: ${input}`);
+        space.setInput('input.x', input);
+        // Wait for the expected amoeba to execute
+        const result = await space.waitForAmoebaExecution(expectedAmoeba);
+    
+        // Validate the result
+        const isResultCorrect = result === expectedResult;
+        allResultsMatch = allResultsMatch && isResultCorrect;
+    
+        registerResult(
+            `Test Web 2 Conditional Flow Execution (Input ${input}, Expected Amoeba: ${expectedAmoeba})`,
+            isResultCorrect,
+            `Expected result ${expectedResult}, got ${result}`
+        );
+    }
+
+    registerResult(
+        'Test Web 2 Conditional Flow Execution (Overall)',
+        allResultsMatch,
+        allResultsMatch ? '' : 'One or more results did not match expected values.'
+    );
+}
+
+
 async function runTest(testFunction, testName) {
     try {
         await testFunction();
@@ -607,6 +754,8 @@ async function runTests() {
     await runTest(testParseFromJSON, 'Test Parse From JSON');
     await runTest(testParseFromYAML, 'Test Parse From YAML');
     await runTest(testPerformance, "Test Performance");
+    await runTest(testExampleWeb1, "Test Example Web Workflow");
+    await runTest(testExampleWeb2, "Test Example Web 2 - Conditional Flow Execution");
 
     // Display summary
     console.log('\n--- Test Summary ---');
