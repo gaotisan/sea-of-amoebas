@@ -19,6 +19,7 @@ Sit back, relax, and let **SofA** handle the flow.
     - Conditional events allow nodes to evaluate dynamic conditions and emit specific events based on their results, providing fine-grained control over process flows.
 3. **Modularity and Scalability:**
     - Event emitters can be shared across multiple AmoebaSpaces, allowing interconnected workflows.
+    - Define your "sea of Amoebas" in modular parts, simplifying complex systems and allowing the reuse or extension of existing definitions.
 4. **Asynchronous Support:**
     - Fully compatible with both synchronous and asynchronous functions.
 5. **Declarative Design:**
