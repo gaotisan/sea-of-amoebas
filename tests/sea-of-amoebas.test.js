@@ -592,33 +592,33 @@ async function testExampleWeb1() {
     const multiply = (x, y) => x * y;
     const increment = async (z) => z + 1;
 
-    const sea = new AmoebaSea();
+    const sofa = new AmoebaSea();
     // Add amoebas using the new object syntax
-    sea.addAmoeba({
+    sofa.addAmoeba({
         id: 'AmoebaA',
         func: add,
         expectedEvents: ['input.a', 'input.b'],
         outputEvents: ['AmoebaB.input']
     });
-    sea.addAmoeba({
+    sofa.addAmoeba({
         id: 'AmoebaB',
         func: multiply,
         expectedEvents: ['AmoebaB.input', 'input.y'],
         outputEvents: ['AmoebaC.input']
     });
-    sea.addAmoeba({
+    sofa.addAmoeba({
         id: 'AmoebaC',
         func: increment,
         expectedEvents: ['AmoebaC.input']
     });
     // Finalize configuration
-    sea.finalizeConfiguration();
+    sofa.finalizeConfiguration();
     // Set initial inputs
-    sea.setInput('input.a', 5); //Initial value for 'input.a'
-    sea.setInput('input.b', 3); //Initial value for 'input.b'
-    sea.setInput('input.y', 2); //Initial value for 'input.y'
+    sofa.setInput('input.a', 5); //Initial value for 'input.a'
+    sofa.setInput('input.b', 3); //Initial value for 'input.b'
+    sofa.setInput('input.y', 2); //Initial value for 'input.y'
     // Wait for the last amoeba to execute
-    const finalResult = await sea.waitForAmoebaExecution('AmoebaC');
+    const finalResult = await sofa.waitForAmoebaExecution('AmoebaC');
     // Validate the result
     const correctResult = finalResult === 17;
     registerResult(
@@ -628,7 +628,7 @@ async function testExampleWeb1() {
     );
 }
 
-async function testExampleWeb2() {    
+async function testExampleWeb2() {
     // Define the workflow as a JavaScript object
     const jsonFlow = {
         amoebas: [
@@ -695,12 +695,11 @@ async function testExampleWeb2() {
         ]
     };
     // Parse the JSON and create the workflow
-    const sea = AmoebaFlowParser.fromJSON(jsonFlow);
+    const sofa = AmoebaFlowParser.fromJSON(jsonFlow);
     // Finalize configuration
-    sea.finalizeConfiguration();
+    sofa.finalizeConfiguration();
     // Test the workflow with different inputs
-    const inputs = [3, 6, 10];
-
+    
     const expectedResults = [
         { input: 3, expectedAmoeba: 'C', expectedResult: 2 },
         { input: 6, expectedAmoeba: 'B', expectedResult: 14 },
@@ -711,9 +710,9 @@ async function testExampleWeb2() {
 
     for (const { input, expectedAmoeba, expectedResult } of expectedResults) {
         console.log(`Processing input: ${input}`);
-        sea.setInput('input.x', input);
+        sofa.setInput('input.x', input);
         // Wait for the expected amoeba to execute
-        const result = await sea.waitForAmoebaExecution(expectedAmoeba);
+        const result = await sofa.waitForAmoebaExecution(expectedAmoeba);
 
         // Validate the result
         const isResultCorrect = result === expectedResult;
