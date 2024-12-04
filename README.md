@@ -1,5 +1,11 @@
 # Sea of Amoebas (SofA)
-A declarative, event-driven framework for modular and scalable workflow execution in JavaScript, ideal for client-side environments.
+A declarative, event-driven framework for modular and scalable workflow execution in JavaScript, designed to make web development smarter and easier.
+
+Imagine building and orchestrating complex workflows in your web application effortlessly, combining standard functions with the power of AI. With **SofA**, you can seamlessly integrate asynchronous processes, conditionally trigger events, and handle intricate data flows—all while enjoying the simplicity and modularity of its declarative design.
+
+**SofA** transforms your codebase into a dynamic, event-driven environment, empowering your application to handle everything from mundane tasks to advanced AI-powered operations. The best part? It’s so intuitive and efficient, it’s like coding from the comfort of your couch.
+
+Sit back, relax, and let **SofA** handle the flow.
 
 ## Overview
 SofA enables developers to construct, manage, and execute complex workflows using a network of interconnected Amoeba Nodes. These nodes represent logical functions that process inputs triggered by events.
@@ -119,13 +125,19 @@ const jsonFlow = {
             outputEvents: ["Logger"]
         },
         // Amoeba D: Computes the modulus of the input with 3
+        // This amoeba does not have an explicit output event, so its result is not sent to another amoeba.
+        // However, all amoebas emit a default event named ID.executed after completing their function.
+        // You can capture this event using:
+        // - `await space.waitForAmoebaExecution("D")` (simplified method to wait for D's execution)
+        // - `await space.waitForOuputEvent("D.executed")` (directly waits for the "D.executed" event)        
         {
             id: 'D',
             func: "(w) => w % 3",
             inputs: ['D.Input']
         },
         // Logger: Logs all incoming data
-        // Example of an amoeba without a specified input event. The amoeba listens for events with its own name, in this case, "Logger". 
+        // Example of an amoeba without a specified input event.
+        // The amoeba listens for events with its own name, in this case, "Logger". 
         // This simplifies the definition and is ideal for functions with a single input event/parameter.
         {
             id: 'Logger',
