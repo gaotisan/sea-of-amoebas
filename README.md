@@ -84,7 +84,8 @@ import { AmoebaFlowParser } from 'sea-of-amoebas';
 
 const jsonFlow = {
     amebas: [
-        // Amoeba A: Adds 1 to the input and emits to Logger and either B.Input or C.Input based on conditions
+        // Amoeba A: Adds 1 to the input and emits to Logger
+        //and either B.Input or C.Input based on conditions
         {
             id: 'A',
             func: "(x) => x + 1",
