@@ -8,7 +8,7 @@ Imagine effortlessly building and coordinating intricate workflows in your web a
 Sit back, relax, and let **SofA** handle the flow.
 
 ## Overview and Features
-**SofA** enables developers to construct, manage, and execute complex workflows using a network of interconnected Amoeba Nodes. These nodes represent logical functions, modeled as *f(x<sub>1</sub>, x<sub>2</sub>, ..., x<sub>n</sub>)*, that process inputs triggered by events. By queuing functions into flows, **SofA** provides a powerful and modular framework for orchestrating dynamic, event-driven processes.
+**SofA** provides a framework to implement workflows as a network of interconnected Amoeba Nodes. Each node represents a function, modeled as f(x<sub>1</sub>, x<sub>2</sub>, ..., x<sub>n</sub>), which waits for all required input parameters to arrive before executing. Once the function completes, it emits output events that can trigger other nodes, creating a continuous flow of processes. This design results in a latent "sea" of nodes (or Amoebas) awaiting events to process, forming a dynamic and responsive system within your web application.
 
 ### Key Features
 1. **Event-Driven Execution:**
