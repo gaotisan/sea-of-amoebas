@@ -46,33 +46,33 @@ const add = (a, b) => a + b;
 const multiply = (x, y) => x * y;
 const increment = async (z) => z + 1;
 
-const sofa = new AmoebaSea();
+const sea = new AmoebaSea();
 // Add amoebas using the new object syntax
-sofa.addAmoeba({
+sea.addAmoeba({
     id: 'AmoebaA',
     func: add,
     expectedEvents: ['input.a', 'input.b'],
     outputEvents: ['AmoebaB.input']
 });
-sofa.addAmoeba({
+sea.addAmoeba({
     id: 'AmoebaB',
     func: multiply,
     expectedEvents: ['AmoebaB.input', 'input.y'],
     outputEvents: ['AmoebaC.input']
 });
-sofa.addAmoeba({
+sea.addAmoeba({
     id: 'AmoebaC',
     func: increment,
     expectedEvents: ['AmoebaC.input']
 });
 // Finalize configuration
-sofa.finalizeConfiguration();
+sea.finalizeConfiguration();
 // Set initial inputs
-sofa.setInput('input.a', 5); //Initial value for 'input.a'
-sofa.setInput('input.b', 3); //Initial value for 'input.b'
-sofa.setInput('input.y', 2); //Initial value for 'input.y'
+sea.setInput('input.a', 5); //Initial value for 'input.a'
+sea.setInput('input.b', 3); //Initial value for 'input.b'
+sea.setInput('input.y', 2); //Initial value for 'input.y'
 // Wait for the last amoeba to execute
-const finalResult = await sofa.waitForAmoebaExecution('AmoebaC');
+const finalResult = await sea.waitForAmoebaExecution('AmoebaC');
 ```
 
 ### Define a Flow with JSON
