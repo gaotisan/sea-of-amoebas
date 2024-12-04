@@ -5,7 +5,7 @@ A declarative, event-driven framework for modular and scalable workflow executio
 SofA enables developers to construct, manage, and execute complex workflows using a network of interconnected Amoeba Nodes. These nodes represent logical functions that process inputs triggered by events.
 The framework's declarative nature supports JSON, YAML, and Mermaid syntax, ensuring clarity and flexibility in defining workflows. Its scalability and modularity make it ideal for both small and large-scale systems.
 
-## CORE Featyres
+## CORE Features
 1. **Event-Driven Execution:**
     * Nodes (f(x1, x2, ..., xn)) execute only after receiving all required inputs as events.
     * Events can carry data from simple primitives to complex objects.
