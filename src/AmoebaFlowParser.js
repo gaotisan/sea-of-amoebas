@@ -37,13 +37,13 @@ export class AmoebaFlowParser {
     * @throws {Error} If the structure is invalid.
     */
     static validateStructure(flow) {
-        if (!Array.isArray(flow.amebas)) {
-            throw new Error('Invalid flow structure. Expected a key "amebas" (array).');
+        if (!Array.isArray(flow.amoebas)) {
+            throw new Error('Invalid flow structure. Expected a key "amoebas" (array).');
         }
 
         // Iterate over amoebas and validate each one
-        flow.amebas.forEach((ameba, index) => {
-            const { id, func, outputEvents } = ameba;
+        flow.amoebas.forEach((amoeba, index) => {
+            const { id, func, outputEvents } = amoeba;
 
             AmoebaFlowParser.validateId(id, index);
             AmoebaFlowParser.validateFunc(func, id);
@@ -134,7 +134,7 @@ export class AmoebaFlowParser {
         const space = new AmoebaSpace();
 
 
-        flow.amebas.forEach(({ id, func, inputs = [], outputEvents = [] }) => {
+        flow.amoebas.forEach(({ id, func, inputs = [], outputEvents = [] }) => {
             const resolvedFunc = AmoebaFlowParser.resolveFunction(func);
 
             const inputEvents = inputs.map(input =>

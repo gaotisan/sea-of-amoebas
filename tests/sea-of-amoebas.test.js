@@ -22,27 +22,27 @@ function registerResult(testName, passed, message = '') {
 async function testSequentialExecution() {
     const executionOrder = []; // Array to record the order of execution
 
-    const amebaAFunction = () => executionOrder.push('S1');
-    const amebaBFunction = () => executionOrder.push('S2');
-    const amebaCFunction = () => executionOrder.push('S3');
+    const amoebaAFunction = () => executionOrder.push('S1');
+    const amoebaBFunction = () => executionOrder.push('S2');
+    const amoebaCFunction = () => executionOrder.push('S3');
 
     const space = new AmoebaSpace();
 
     // Add amoebas using object syntax
     space.addAmoeba({
         id: 'S1',
-        func: amebaAFunction,
+        func: amoebaAFunction,
         outputEvents: ['S2']
     });
     space.addAmoeba({
         id: 'S2',
-        func: amebaBFunction,
+        func: amoebaBFunction,
         expectedEvents: ['S2'],
         outputEvents: ['S3']
     });
     space.addAmoeba({
         id: 'S3',
-        func: amebaCFunction,
+        func: amoebaCFunction,
     });
 
     // Finalize configuration and wait for the last amoeba
@@ -344,7 +344,7 @@ async function testInvalidConditionHandling() {
 
 async function testParseFromJSON() {
     const jsonFlow = {
-        amebas: [
+        amoebas: [
             {
                 id: 'A',
                 func: '(x) => x + 1',
@@ -485,7 +485,7 @@ async function testParseFromJSON() {
 // Test: Parse and execute from YAML
 async function testParseFromYAML() {
     const yamlFlow = `
-amebas:
+amoebas:
   - id: A
     func: "(x) => x + 1"
     inputs:
@@ -630,7 +630,7 @@ async function testExampleWeb1() {
 
 async function testExampleWeb2() {
     const jsonFlow = {
-        amebas: [
+        amoebas: [
             // Amoeba A: Adds 1 to the input and emits to Logger
             //and either B.Input or C.Input based on conditions
             {

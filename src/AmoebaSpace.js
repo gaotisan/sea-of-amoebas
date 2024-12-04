@@ -13,19 +13,19 @@ export class AmoebaSpace {
             //console.warn(`[AmoebaSpace] Amoeba "${id}" has no explicit inputs. Defaulting to its own ID as input.`);
             expectedEvents.push(id);            
         }
-        const ameba = new Amoeba({ id, func, eventEmitter: this.eventEmitter, storeResults: this.storeResults, expectedEvents, outputEvents, outputRules });
-        this.amoebas[id] = ameba;
+        const amoeba = new Amoeba({ id, func, eventEmitter: this.eventEmitter, storeResults: this.storeResults, expectedEvents, outputEvents, outputRules });
+        this.amoebas[id] = amoeba;
 
         // Register listeners for the expected events
         expectedEvents.forEach(eventName => {
             this.eventEmitter.on(eventName, (data) => {
-                ameba.receive(eventName, data);
+                amoeba.receive(eventName, data);
             });
         });        
     }    
 
     finalizeConfiguration() {        
-        Object.values(this.amoebas).forEach(ameba => ameba.setReady());
+        Object.values(this.amoebas).forEach(amoeba => amoeba.setReady());
     }
 
     setInput(eventName, data) {
