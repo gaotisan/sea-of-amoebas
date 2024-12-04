@@ -18,7 +18,7 @@ Sit back, relax, and let **SofA** handle the flow.
     - Nodes can emit multiple output events *(e1, e2, ..., em)*, enabling branching and parallel workflows.
     - Conditional events allow nodes to evaluate dynamic conditions and emit specific events based on their results, providing fine-grained control over process flows.
 3. **Modularity and Scalability:**
-    - Event emitters can be shared across multiple AmoebaSpaces, allowing interconnected workflows.
+    - Event emitters can be shared across multiple AmoebaSeas, allowing interconnected workflows.
     - Define your "*sea of Amoebas*" in modular parts, simplifying complex systems and allowing the reuse or extension of existing definitions.
 4. **Asynchronous Support:**
     - Fully compatible with both synchronous and asynchronous functions.
@@ -46,7 +46,7 @@ const add = (a, b) => a + b;
 const multiply = (x, y) => x * y;
 const increment = async (z) => z + 1;
 
-const sea = new AmoebaSpace();
+const sea = new AmoebaSea();
 // Add amoebas using the new object syntax
 sea.addAmoeba({
     id: 'AmoebaA',
@@ -127,8 +127,8 @@ const jsonFlow = {
         // While it does not define explicit output events to pass its result to another amoeba,
         // every amoeba emits a default event named `ID.executed` upon completion.
         // This allows you to retrieve its result if needed.
-        // Example: Use `await space.waitForAmoebaExecution("D")` to wait for its execution
-        // or `await space.waitForOutputEvent("D.executed")` to directly capture the emitted event.
+        // Example: Use `await sea.waitForAmoebaExecution("D")` to wait for its execution
+        // or `await sea.waitForOutputEvent("D.executed")` to directly capture the emitted event.
         {
             id: 'D',
             func: "(w) => w % 3",
