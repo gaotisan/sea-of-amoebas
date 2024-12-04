@@ -8,7 +8,7 @@ Imagine effortlessly building and coordinating intricate workflows in your web a
 Sit back, relax, and let **SofA** handle the flow.
 
 ## Overview and Features
-**SofA** provides a framework to implement workflows as a network of interconnected Amoeba Nodes. Each node represents a function, modeled as f(x<sub>1</sub>, x<sub>2</sub>, ..., x<sub>n</sub>), which waits for all required input parameters to arrive before executing. Once the function completes, it emits output events that can trigger other nodes, creating a continuous flow of processes. This design results in a latent "sea" of nodes (or Amoebas) awaiting events to process, forming a dynamic and responsive system within your web application.
+**SofA** provides a framework to implement workflows as a network of interconnected Amoeba Nodes. Each node represents a function, modeled as *f(x<sub>1</sub>, x<sub>2</sub>, ..., x<sub>n</sub>)*, which waits for all required input parameters to arrive before executing. Once the function completes, it emits output events that can trigger other nodes, creating a continuous flow of processes. This design results in a latent "sea" of nodes (or Amoebas) awaiting events to process, forming a dynamic and responsive system within your web application.
 
 ### Key Features
 1. **Event-Driven Execution:**
@@ -19,7 +19,7 @@ Sit back, relax, and let **SofA** handle the flow.
     - Conditional events allow nodes to evaluate dynamic conditions and emit specific events based on their results, providing fine-grained control over process flows.
 3. **Modularity and Scalability:**
     - Event emitters can be shared across multiple AmoebaSpaces, allowing interconnected workflows.
-    - Define your "sea of Amoebas" in modular parts, simplifying complex systems and allowing the reuse or extension of existing definitions.
+    - Define your "*sea of Amoebas*" in modular parts, simplifying complex systems and allowing the reuse or extension of existing definitions.
 4. **Asynchronous Support:**
     - Fully compatible with both synchronous and asynchronous functions.
 5. **Declarative Design:**
