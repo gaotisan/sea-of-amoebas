@@ -169,7 +169,7 @@ For more illustrative and complex examples, check the tests folder in the reposi
 MIT License. See LICENSE for details.
 
 ## Contact
-Created by gaotisan. Feel free to reach out via GitHub Issues.
+Created by Gaotisan. Feel free to reach out via GitHub Issues.
 You can also connect with me on [LinkedIn](https://www.linkedin.com/in/santiago-ochoa-ceresuela/).
 
 
