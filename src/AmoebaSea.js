@@ -1,7 +1,7 @@
 import { Amoeba } from './Amoeba.js';
 import EventEmitter from './EventEmitter.js';
 
-export class AmoebaSpace {
+export class AmoebaSea {
     constructor({ eventEmitter = null, storeResults = false } = {}) {
         this.amoebas = {};
         this.eventEmitter = eventEmitter || new EventEmitter();
@@ -10,7 +10,7 @@ export class AmoebaSpace {
 
     addAmoeba({ id, func, expectedEvents = [], outputEvents = [], outputRules = [] }) {
         if (expectedEvents.length === 0) {
-            //console.warn(`[AmoebaSpace] Amoeba "${id}" has no explicit inputs. Defaulting to its own ID as input.`);
+            //console.warn(`[AmoebaSea] Amoeba "${id}" has no explicit inputs. Defaulting to its own ID as input.`);
             expectedEvents.push(id);            
         }
         const amoeba = new Amoeba({ id, func, eventEmitter: this.eventEmitter, storeResults: this.storeResults, expectedEvents, outputEvents, outputRules });
@@ -29,7 +29,7 @@ export class AmoebaSpace {
     }
 
     setInput(eventName, data) {
-        console.log(`[AmoebaSpace] Introducing event: "${eventName}" with data:`, data);
+        console.log(`[AmoebaSea] Introducing event: "${eventName}" with data:`, data);
         this.eventEmitter.emit(eventName, data);
     }
 

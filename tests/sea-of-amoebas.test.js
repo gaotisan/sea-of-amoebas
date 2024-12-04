@@ -1,4 +1,4 @@
-import { AmoebaSpace } from '../src/AmoebaSpace.js';
+import { AmoebaSea } from '../src/AmoebaSea.js';
 import { AmoebaFlowParser } from '../src/AmoebaFlowParser.js';
 
 const testResults = {
@@ -26,29 +26,29 @@ async function testSequentialExecution() {
     const amoebaBFunction = () => executionOrder.push('S2');
     const amoebaCFunction = () => executionOrder.push('S3');
 
-    const space = new AmoebaSpace();
+    const sea = new AmoebaSea();
 
     // Add amoebas using object syntax
-    space.addAmoeba({
+    sea.addAmoeba({
         id: 'S1',
         func: amoebaAFunction,
         outputEvents: ['S2']
     });
-    space.addAmoeba({
+    sea.addAmoeba({
         id: 'S2',
         func: amoebaBFunction,
         expectedEvents: ['S2'],
         outputEvents: ['S3']
     });
-    space.addAmoeba({
+    sea.addAmoeba({
         id: 'S3',
         func: amoebaCFunction,
     });
 
     // Finalize configuration and wait for the last amoeba
-    space.finalizeConfiguration();
-    space.setInput('S1'); // Trigger the first amoeba
-    await space.waitForAmoebaExecution('S3'); // Wait for S3 to finish
+    sea.finalizeConfiguration();
+    sea.setInput('S1'); // Trigger the first amoeba
+    await sea.waitForAmoebaExecution('S3'); // Wait for S3 to finish
 
     // Validate results
     const executionsCorrect = executionOrder.length === 3;
@@ -73,36 +73,36 @@ async function testCalculationExecution() {
     const multiply = (x, y) => x * y;
     const increment = async (z) => z + 1;
 
-    const space = new AmoebaSpace();
+    const sea = new AmoebaSea();
 
     // Add amoebas using the new object syntax
-    space.addAmoeba({
+    sea.addAmoeba({
         id: 'AmoebaA',
         func: add,
         expectedEvents: ['input.a', 'input.b'],
         outputEvents: ['AmoebaB.input']
     });
 
-    space.addAmoeba({
+    sea.addAmoeba({
         id: 'AmoebaB',
         func: multiply,
         expectedEvents: ['AmoebaB.input', 'input.y'],
         outputEvents: ['AmoebaC.input']
     });
 
-    space.addAmoeba({
+    sea.addAmoeba({
         id: 'AmoebaC',
         func: increment,
         expectedEvents: ['AmoebaC.input']
     });
 
     // Finalize configuration and wait for the last amoeba
-    space.finalizeConfiguration();
+    sea.finalizeConfiguration();
     // Set initial inputs
-    space.setInput('input.a', 5);
-    space.setInput('input.b', 3);
-    space.setInput('input.y', 2);
-    const finalResult = await space.waitForAmoebaExecution('AmoebaC');
+    sea.setInput('input.a', 5);
+    sea.setInput('input.b', 3);
+    sea.setInput('input.y', 2);
+    const finalResult = await sea.waitForAmoebaExecution('AmoebaC');
 
     // Validate results
     const correctResult = finalResult === 17;
@@ -131,34 +131,34 @@ async function testMixedExecutionAndCompletion() {
         return 'Result C';
     };
 
-    const space = new AmoebaSpace();
+    const sea = new AmoebaSea();
 
     // Add amoebas using new definitions
-    space.addAmoeba({
+    sea.addAmoeba({
         id: 'A',
         func: funcA,
         outputEvents: ['B.input']
     });
 
-    space.addAmoeba({
+    sea.addAmoeba({
         id: 'B',
         func: funcB,
         expectedEvents: ['B.input'],
         outputEvents: ['C.input']
     });
 
-    space.addAmoeba({
+    sea.addAmoeba({
         id: 'C',
         func: funcC,
         expectedEvents: ['C.input']
     });
 
     // Set initial input and trigger execution
-    space.finalizeConfiguration();
-    space.setInput('A'); // Start by triggering 'A'
+    sea.finalizeConfiguration();
+    sea.setInput('A'); // Start by triggering 'A'
 
     // Wait for a specific amoeba to complete
-    const result = await space.waitForAmoebaExecution('C');
+    const result = await sea.waitForAmoebaExecution('C');
 
     // Validate results
     const correctResults = logResults.includes('A executed') && logResults.includes('B executed') && logResults.includes('C executed');
@@ -184,43 +184,43 @@ async function testResultStorage() {
     const incrementa = async (z) => z + 1;
 
     // Enable result storage
-    const space = new AmoebaSpace({ storeResults: true });
+    const sea = new AmoebaSea({ storeResults: true });
 
     // Add amoebas
-    space.addAmoeba({
+    sea.addAmoeba({
         id: 'AmoebaA',
         func: suma,
         expectedEvents: ['input.a', 'input.b'],
         outputEvents: ['AmoebaB.input']
     });
 
-    space.addAmoeba({
+    sea.addAmoeba({
         id: 'AmoebaB',
         func: multiplica,
         expectedEvents: ['AmoebaB.input', 'input.y'],
         outputEvents: ['AmoebaC.input']
     });
 
-    space.addAmoeba({
+    sea.addAmoeba({
         id: 'AmoebaC',
         func: incrementa,
         expectedEvents: ['AmoebaC.input']
     });
 
     // Finalize configuration
-    space.finalizeConfiguration();
+    sea.finalizeConfiguration();
 
     // Set initial inputs
-    space.setInput('input.a', 5);
-    space.setInput('input.b', 3);
-    space.setInput('input.y', 2);
+    sea.setInput('input.a', 5);
+    sea.setInput('input.b', 3);
+    sea.setInput('input.y', 2);
 
     // Wait for the last amoeba to complete
-    const resultC = await space.waitForAmoebaExecution('AmoebaC');
+    const resultC = await sea.waitForAmoebaExecution('AmoebaC');
 
     // Validate that results are stored in the amoebas
-    const resultA = space.amoebas['AmoebaA'].result;
-    const resultB = space.amoebas['AmoebaB'].result;
+    const resultA = sea.amoebas['AmoebaA'].result;
+    const resultB = sea.amoebas['AmoebaB'].result;
 
     const resultAValid = resultA === 8;
     const resultBValid = resultB === 16;
@@ -232,9 +232,9 @@ async function testResultStorage() {
 }
 
 async function testConditionalEventEmission() {
-    const space = new AmoebaSpace();
+    const sea = new AmoebaSea();
 
-    space.addAmoeba({
+    sea.addAmoeba({
         id: 'ConditionTrue',
         func: (x) => x * 2,
         expectedEvents: ['input.x'],
@@ -246,7 +246,7 @@ async function testConditionalEventEmission() {
         ]
     });
 
-    space.addAmoeba({
+    sea.addAmoeba({
         id: 'ConditionFalse',
         func: (x) => x + 2,
         expectedEvents: ['input.x'],
@@ -261,25 +261,25 @@ async function testConditionalEventEmission() {
     let highValueTriggered = false;
     let lowValueTriggered = false;
 
-    space.eventEmitter.on('HighValue', () => {
+    sea.eventEmitter.on('HighValue', () => {
         highValueTriggered = true;
     });
 
-    space.eventEmitter.on('LowValue', () => {
+    sea.eventEmitter.on('LowValue', () => {
         lowValueTriggered = true;
     });
 
     // Ensures all amoebas are "ready" to process inputs and their listeners are set up.
     // Without this, inputs won't trigger amoeba execution.
-    space.finalizeConfiguration();
+    sea.finalizeConfiguration();
     // Sets up a promise that waits for the 'ConditionTrue.executed' &  'ConditionFalse.executed' events to resolve.
     // Ensures no event is missed if inputs trigger execution after this point.
-    const promiseConditionTrue = space.waitForAmoebaExecution('ConditionTrue');
-    const promiseConditionFalse = space.waitForAmoebaExecution('ConditionFalse');
+    const promiseConditionTrue = sea.waitForAmoebaExecution('ConditionTrue');
+    const promiseConditionFalse = sea.waitForAmoebaExecution('ConditionFalse');
 
     // Triggers an input event for 'input.x' with a value of 6.
     // This input will propagate through the amoebas based on their configuration.
-    space.setInput('input.x', 6);
+    sea.setInput('input.x', 6);
 
     // Waits for the 'ConditionTrue' amoeba to execute and resolve its promise.
     // Ensures the flow dependent on this result does not proceed prematurely.
@@ -303,7 +303,7 @@ async function testConditionalEventEmission() {
 }
 
 async function testInvalidConditionHandling() {
-    const space = new AmoebaSpace();
+    const sea = new AmoebaSea();
 
     let errorLogged = false;
 
@@ -315,7 +315,7 @@ async function testInvalidConditionHandling() {
         originalConsoleError(message);
     };
 
-    space.addAmoeba({
+    sea.addAmoeba({
         id: 'InvalidCondition',
         func: (x) => x * 2,
         expectedEvents: ['input.x'],
@@ -327,10 +327,10 @@ async function testInvalidConditionHandling() {
         ]
     });
 
-    space.finalizeConfiguration();
-    space.setInput('input.x', 5);
+    sea.finalizeConfiguration();
+    sea.setInput('input.x', 5);
 
-    await space.waitForAmoebaExecution('InvalidCondition');
+    await sea.waitForAmoebaExecution('InvalidCondition');
 
     console.error = originalConsoleError;
 
@@ -396,12 +396,12 @@ async function testParseFromJSON() {
 
     console.log("Running JSON Parsing Test with Unified OutputEvents...");
 
-    // Parse the JSON and create the AmoebaSpace
-    const space = AmoebaFlowParser.fromJSON(jsonFlow);
+    // Parse the JSON and create the AmoebaSea
+    const sea = AmoebaFlowParser.fromJSON(jsonFlow);
 
     // Validate amoebas creation
     const expectedIds = ['A', 'B', 'C', 'D', 'Logger'];
-    const actualIds = Object.keys(space.amoebas);
+    const actualIds = Object.keys(sea.amoebas);
     const idsMatch = JSON.stringify(expectedIds) === JSON.stringify(actualIds);
 
     registerResult(
@@ -411,7 +411,7 @@ async function testParseFromJSON() {
     );
 
     // Validate one amoeba's configuration
-    const amoebaA = space.amoebas['A'];
+    const amoebaA = sea.amoebas['A'];
     const amoebaAValid =
         amoebaA &&
         amoebaA.expectedEvents.includes('input.x') &&
@@ -427,14 +427,14 @@ async function testParseFromJSON() {
     );
 
     // Validate functional execution
-    space.finalizeConfiguration();
+    sea.finalizeConfiguration();
 
     const inputs = [3, 6, 10];
     const results = [];
 
     for (const input of inputs) {
         console.log(`Testing with input.x = ${input}`);
-        space.setInput('input.x', input);
+        sea.setInput('input.x', input);
 
         let expectedAmoebaId;
         const incremented = input + 1;
@@ -450,7 +450,7 @@ async function testParseFromJSON() {
             }
         }
 
-        const result = await space.waitForAmoebaExecution(expectedAmoebaId);
+        const result = await sea.waitForAmoebaExecution(expectedAmoebaId);
         results.push({ input, result });
     }
 
@@ -499,13 +499,13 @@ amoebas:
 `;
 
 
-    // Parse the YAML to create the AmoebaSpace
-    const space = AmoebaFlowParser.fromYAML(yamlFlow);
+    // Parse the YAML to create the AmoebaSea
+    const sea= AmoebaFlowParser.fromYAML(yamlFlow);
 
-    space.finalizeConfiguration(); // Finalize with B as the target amoeba
+    sea.finalizeConfiguration(); // Finalize with B as the target amoeba
     // Define a promise to wait for the final amoeba's execution
-    const finalPromise = space.waitForAmoebaExecution('B');
-    space.setInput('input.x', 4); // Input for amoeba A
+    const finalPromise = sea.waitForAmoebaExecution('B');
+    sea.setInput('input.x', 4); // Input for amoeba A
 
     // Wait for the result of amoeba B
     const finalResult = await finalPromise;
@@ -521,7 +521,7 @@ amoebas:
 
 async function testPerformance() {
     const numAmoebas = 1000; // You can adjust this number
-    const space = new AmoebaSpace();
+    const sea= new AmoebaSea();
 
     // Record initial memory usage
     const initialMemory = process.memoryUsage().heapUsed;
@@ -531,7 +531,7 @@ async function testPerformance() {
 
     // Add a chain of amoebas
     for (let i = 0; i < numAmoebas; i++) {
-        space.addAmoeba({
+        sea.addAmoeba({
             id: `Amoeba${i}`,
             func: (input) => input + 1,
             expectedEvents: i === 0 ? ['input.start'] : [`Amoeba${i - 1}.executed`],
@@ -540,13 +540,13 @@ async function testPerformance() {
     }
 
     // Finalize configuration
-    space.finalizeConfiguration();
+    sea.finalizeConfiguration();
 
     // Set initial input to trigger the chain
-    space.setInput('input.start', 0);
+    sea.setInput('input.start', 0);
 
     // Wait for the last amoeba to execute
-    await space.waitForAmoebaExecution(`Amoeba${numAmoebas - 1}`);
+    await sea.waitForAmoebaExecution(`Amoeba${numAmoebas - 1}`);
 
     // Stop timing
     const endTime = performance.now();
@@ -592,33 +592,33 @@ async function testExampleWeb1() {
     const multiply = (x, y) => x * y;
     const increment = async (z) => z + 1;
 
-    const space = new AmoebaSpace();
+    const sea= new AmoebaSea();
     // Add amoebas using the new object syntax
-    space.addAmoeba({
+    sea.addAmoeba({
         id: 'AmoebaA',
         func: add,
         expectedEvents: ['input.a', 'input.b'],
         outputEvents: ['AmoebaB.input']
     });
-    space.addAmoeba({
+    sea.addAmoeba({
         id: 'AmoebaB',
         func: multiply,
         expectedEvents: ['AmoebaB.input', 'input.y'],
         outputEvents: ['AmoebaC.input']
     });
-    space.addAmoeba({
+    sea.addAmoeba({
         id: 'AmoebaC',
         func: increment,
         expectedEvents: ['AmoebaC.input']
     });
     // Finalize configuration
-    space.finalizeConfiguration();
+    sea.finalizeConfiguration();
     // Set initial inputs
-    space.setInput('input.a', 5); //Initial value for 'input.a'
-    space.setInput('input.b', 3); //Initial value for 'input.b'
-    space.setInput('input.y', 2); //Initial value for 'input.y'
+    sea.setInput('input.a', 5); //Initial value for 'input.a'
+    sea.setInput('input.b', 3); //Initial value for 'input.b'
+    sea.setInput('input.y', 2); //Initial value for 'input.y'
     // Wait for the last amoeba to execute
-    const finalResult = await space.waitForAmoebaExecution('AmoebaC');
+    const finalResult = await sea.waitForAmoebaExecution('AmoebaC');
 
     // Validate the result
     const correctResult = finalResult === 17;
@@ -678,8 +678,8 @@ async function testExampleWeb2() {
             // While it does not define explicit output events to pass its result to another amoeba,
             // every amoeba emits a default event named `ID.executed` upon completion.
             // This allows you to retrieve its result if needed.
-            // Example: Use `await space.waitForAmoebaExecution("D")` to wait for its execution
-            // or `await space.waitForOutputEvent("D.executed")` to directly capture the emitted event.
+            // Example: Use `await sea.waitForAmoebaExecution("D")` to wait for its execution
+            // or `await sea.waitForOutputEvent("D.executed")` to directly capture the emitted event.
             {
                 id: 'D',
                 func: "(w) => w % 3",
@@ -695,9 +695,9 @@ async function testExampleWeb2() {
         ]
     };
     // Parse the JSON and create the workflow
-    const space = AmoebaFlowParser.fromJSON(jsonFlow);
+    const sea= AmoebaFlowParser.fromJSON(jsonFlow);
     // Finalize configuration
-    space.finalizeConfiguration();
+    sea.finalizeConfiguration();
     // Test the workflow with different inputs
     const inputs = [3, 6, 10];
 
@@ -711,9 +711,9 @@ async function testExampleWeb2() {
 
     for (const { input, expectedAmoeba, expectedResult } of expectedResults) {
         console.log(`Processing input: ${input}`);
-        space.setInput('input.x', input);
+        sea.setInput('input.x', input);
         // Wait for the expected amoeba to execute
-        const result = await space.waitForAmoebaExecution(expectedAmoeba);
+        const result = await sea.waitForAmoebaExecution(expectedAmoeba);
 
         // Validate the result
         const isResultCorrect = result === expectedResult;
@@ -733,11 +733,11 @@ async function testExampleWeb2() {
     );
 }
 
-async function testInterconnectedAmoebaSpaces() {
+async function testInterconnectedAmoebaSeas() {
     
-    // First AmoebaSpace
-    const space1 = new AmoebaSpace();
-    space1.addAmoeba({
+    // First AmoebaSea
+    const sea1 = new AmoebaSea();
+    sea1.addAmoeba({
         id: 'A1',
         func: (x) => {
             console.log('Amoeba A1 executed');
@@ -747,9 +747,9 @@ async function testInterconnectedAmoebaSpaces() {
         outputEvents: ['sharedEvent']
     });
 
-    // Second AmoebaSpace
-    const space2 = new AmoebaSpace({ eventEmitter: space1.eventEmitter });
-    space2.addAmoeba({
+    // Second AmoebaSea
+    const sea2 = new AmoebaSea({ eventEmitter: sea1.eventEmitter });
+    sea2.addAmoeba({
         id: 'B1',
         func: (x) => {
             console.log('Amoeba B1 executed');
@@ -759,21 +759,21 @@ async function testInterconnectedAmoebaSpaces() {
     });
 
     // Finalize configurations
-    space1.finalizeConfiguration();
-    space2.finalizeConfiguration();
+    sea1.finalizeConfiguration();
+    sea2.finalizeConfiguration();
 
-    // Set initial input to space1
-    space1.setInput('input.start', 3);
+    // Set initial input to sea1
+    sea1.setInput('input.start', 3);
 
-    // Wait for execution in space2
-    const result = await space2.waitForAmoebaExecution('B1');
+    // Wait for execution in sea2
+    const result = await sea2.waitForAmoebaExecution('B1');
 
     // Validate result
     const expected = (3 + 1) * 2; // A1: 3+1, B1: 4*2
     const resultValid = result === expected;
 
     registerResult(
-        'Test Interconnected AmoebaSpaces',
+        'Test Interconnected AmoebaSeas',
         resultValid,
         resultValid
             ? `Expected ${expected}, Got ${result}`
@@ -803,7 +803,7 @@ async function runTests() {
     await runTest(testParseFromJSON, 'Test Parse From JSON');
     await runTest(testParseFromYAML, 'Test Parse From YAML');
     await runTest(testPerformance, "Test Performance");
-    await runTest(testInterconnectedAmoebaSpaces, 'Test Interconnected AmoebaSpaces');
+    await runTest(testInterconnectedAmoebaSeas, 'Test Interconnected AmoebaSeas');
     await runTest(testExampleWeb1, "Test Example Web Workflow");
     await runTest(testExampleWeb2, "Test Example Web 2 - Conditional Flow Execution");    
 

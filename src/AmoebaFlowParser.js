@@ -1,13 +1,13 @@
-import { AmoebaSpace } from './AmoebaSpace.js';
+import { AmoebaSea } from './AmoebaSea.js';
 import YAML from 'yaml'; // If using a YAML library
 
 export class AmoebaFlowParser {
     constructor() { }
 
     /**
-     * Creates an AmoebaSpace from a JSON flow.
+     * Creates an AmoebaSea from a JSON flow.
      * @param {Object|string} json - JSON definition or JSON string.
-     * @returns {AmoebaSpace}
+     * @returns {AmoebaSea}
      */
     static fromJSON(json) {
         let parsedJSON;
@@ -125,13 +125,13 @@ export class AmoebaFlowParser {
     }
 
     /**
-     * Generic parser that converts a flow object to an AmoebaSpace.
+     * Generic parser that converts a flow object to an AmoebaSea.
      * @param {Object} flow - Processed flow (JSON-like).
-     * @returns {AmoebaSpace}
+     * @returns {AmoebaSea}
      */
     static parse(flow) {
 
-        const space = new AmoebaSpace();
+        const sea = new AmoebaSea();
 
 
         flow.amoebas.forEach(({ id, func, inputs = [], outputEvents = [] }) => {
@@ -141,7 +141,7 @@ export class AmoebaFlowParser {
                 typeof input === 'string' ? input : input.name
             );
 
-            space.addAmoeba({
+            sea.addAmoeba({
                 id,
                 func: resolvedFunc,
                 expectedEvents: inputEvents,
@@ -149,13 +149,13 @@ export class AmoebaFlowParser {
             });
         });
 
-        return space;
+        return sea;
     }
 
     /**
-     * Creates an AmoebaSpace from a YAML flow.
+     * Creates an AmoebaSea from a YAML flow.
      * @param {string} yaml - YAML definition.
-     * @returns {AmoebaSpace}
+     * @returns {AmoebaSea}
      */
     static fromYAML(yaml) {
         try {
