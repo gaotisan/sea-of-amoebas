@@ -82,20 +82,20 @@ import { AmoebaFlowParser } from 'sea-of-amoebas';
 // Define the workflow as a JavaScript object
 const jsonFlow = {
     amebas: [
-        // Amoeba A: Adds 1 to the input and emits to Logger
+        // Amoeba A: Adds 1 to the input and emits to "Logger",
         //and either B.Input or C.Input based on conditions
         {
             id: 'A',
             func: "(x) => x + 1",
             inputs: ['input.x'],
             outputEvents: [
-                "Logger", // Simple output event that sends all results to Logger, regardless of their value
+                "Logger", // Sends all results to Logger, regardless of value
                 {
-                    condition: "(result) => result > 5", // Conditional output event that sends the result as input to B
+                    condition: "(result) => result > 5", // If result > 5, send to B.Input
                     outputEvents: ["B.Input"]
                 },
                 {
-                    condition: "(result) => result <= 5", // Conditional output event that sends the result as input to C
+                    condition: "(result) => result <= 5", // If result <= 5, send to C.Input
                     outputEvents: ["C.Input"]
                 }
             ]
@@ -107,11 +107,11 @@ const jsonFlow = {
             inputs: ['B.Input'],
             outputEvents: [
                 {
-                    condition: "(result) => result > 15",
+                    condition: "(result) => result > 15",// If result > 15, send to D.Input
                     outputEvents: ["D.Input"]
                 },
                 {
-                    condition: "(result) => result <= 15",
+                    condition: "(result) => result <= 15",// If result <= 15, send to Logger
                     outputEvents: ["Logger"]
                 }
             ]
@@ -123,21 +123,20 @@ const jsonFlow = {
             inputs: ['C.Input'],
             outputEvents: ["Logger"]
         },
-        // Amoeba D: Computes the modulus of the input with 3
-        // This amoeba does not have an explicit output event, so its result is not sent to another amoeba.
-        // However, all amoebas emit a default event named ID.executed after completing their function.
-        // You can capture this event using:
-        // - `await space.waitForAmoebaExecution("D")` (simplified method to wait for D's execution)
-        // - `await space.waitForOuputEvent("D.executed")` (directly waits for the "D.executed" event)        
+        // Amoeba D: Computes modulus of input with 3
+        // While it does not define explicit output events to pass its result to another amoeba,
+        // every amoeba emits a default event named `ID.executed` upon completion.
+        // This allows you to retrieve its result if needed.
+        // Example: Use `await space.waitForAmoebaExecution("D")` to wait for its execution
+        // or `await space.waitForOutputEvent("D.executed")` to directly capture the emitted event.
         {
             id: 'D',
             func: "(w) => w % 3",
             inputs: ['D.Input']
         },
         // Logger: Logs all incoming data
-        // Example of an amoeba without a specified input event.
-        // The amoeba listens for events with its own name, in this case, "Logger". 
-        // This simplifies the definition and is ideal for functions with a single input event/parameter.
+        // If no input events are explicitly specified, the amoeba defaults to listening for events with its own name.
+        // In this case, "Logger" listens for "Logger" events, simplifying the definition for single-input functions.
         {
             id: 'Logger',
             func: "(data) => console.log(`Log: ${data}`)"
