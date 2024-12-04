@@ -82,7 +82,7 @@ const finalResult = await space.waitForAmoebaExecution('AmoebaC');
 import { AmoebaFlowParser } from 'sea-of-amoebas';
 // Define the workflow as a JavaScript object
 const jsonFlow = {
-    amebas: [
+    amoebas: [
         // Amoeba A: Adds 1 to the input and emits to "Logger",
         // and either B.Input or C.Input based on conditions
         {
