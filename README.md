@@ -13,7 +13,7 @@ The framework's declarative nature supports JSON and YAML syntax, ensuring clari
 
 ## Core Features
 1. **Event-Driven Execution:**
-    - Nodes (`f(x₁, x₂, ..., xₙ)`) execute only after receiving all required inputs as events.
+    - Nodes (f(x<sub>1</sub>, x<sub>2</sub>, ..., x<sub>n</sub>)) execute only after receiving all required inputs as events.
     - Events can carry data from simple primitives to complex objects.
 2. **Multiple Outputs:**
     - Nodes can emit multiple output events (e1, e2, ..., em), enabling branching and parallel workflows.
@@ -66,12 +66,13 @@ space.addAmoeba({
     func: increment,
     expectedEvents: ['AmoebaC.input']
 });
-// Finalize configuration and wait for the last amoeba
+// Finalize configuration
 space.finalizeConfiguration();
 // Set initial inputs
 space.setInput('input.a', 5); //Initial value for 'input.a'
 space.setInput('input.b', 3); //Initial value for 'input.b'
 space.setInput('input.y', 2); //Initial value for 'input.y'
+// Wait for the last amoeba to execute
 const finalResult = await space.waitForAmoebaExecution('AmoebaC');
 ```
 
@@ -83,7 +84,7 @@ import { AmoebaFlowParser } from 'sea-of-amoebas';
 const jsonFlow = {
     amebas: [
         // Amoeba A: Adds 1 to the input and emits to "Logger",
-        //and either B.Input or C.Input based on conditions
+        // and either B.Input or C.Input based on conditions
         {
             id: 'A',
             func: "(x) => x + 1",
@@ -158,8 +159,8 @@ for (const input of inputs) {
 ### Explore Advanced Examples
 For more illustrative and complex examples, check the tests folder in the repository. It contains a variety of test cases showcasing advanced workflows, including conditional logic, branching, and modular designs.
 
-### Supported Formats
-- **JSON**: Define amebas, inputs, and connections in a structured format.
+## Supported Formats
+- **JSON**: Define Amoeba, inputs, and connections in a structured format.
 - **YAML**: Similar to JSON but with more human-readable syntax.
 
 ## License
