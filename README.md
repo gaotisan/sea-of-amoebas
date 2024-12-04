@@ -34,7 +34,7 @@ git clone https://github.com/gaotisan/sea-of-amoebas.git
 cd sea-of-amoebas
 Install dependencies:
 ```
-
+Now, install the dependencies:
 ```bash
 npm install
 ```
