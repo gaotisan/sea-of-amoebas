@@ -9,21 +9,21 @@ Sit back, relax, and let **SofA** handle the flow.
 
 ## Overview
 SofA enables developers to construct, manage, and execute complex workflows using a network of interconnected Amoeba Nodes. These nodes represent logical functions that process inputs triggered by events.
-The framework's declarative nature supports JSON, YAML, and Mermaid syntax, ensuring clarity and flexibility in defining workflows. Its scalability and modularity make it ideal for both small and large-scale systems.
+The framework's declarative nature supports JSON and YAML syntax, ensuring clarity and flexibility in defining workflows. Its scalability and modularity make it ideal for both small and large-scale systems.
 
-## CORE Features
+## Core Features
 1. **Event-Driven Execution:**
 - Nodes (f(x1, x2, ..., xn)) execute only after receiving all required inputs as events.
 - Events can carry data from simple primitives to complex objects.
 2. **Multiple Outputs:**
 - Nodes can emit multiple output events (e1, e2, ..., em), enabling branching and parallel workflows.
-- Modularity and Scalability:
+3. **Modularity and Scalability:**
 - Event emitters can be shared across multiple AmoebaSpaces, allowing interconnected workflows.
-3. **Asynchronous Support:**
+4. **Asynchronous Support:**
 - Fully compatible with both synchronous and asynchronous functions.
-4. **Declarative Design:**
+5. **Declarative Design:**
 - Define workflows in JSON or YAML syntax for a readable, shareable structure.
-5. **Conditional Outputs:**
+6. **Conditional Outputs:**
 - Nodes can emit events based on dynamically evaluated conditions.
 
 ## Installation
@@ -79,7 +79,7 @@ const finalResult = await space.waitForAmoebaExecution('AmoebaC');
 
 ```javascript
 import { AmoebaFlowParser } from 'sea-of-amoebas';
-
+// Define the workflow as a JavaScript object
 const jsonFlow = {
     amebas: [
         // Amoeba A: Adds 1 to the input and emits to Logger
