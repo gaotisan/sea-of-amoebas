@@ -28,11 +28,9 @@ The framework's declarative nature supports JSON, YAML, and Mermaid syntax, ensu
 
 ## Installation
 Clone the repository:
-
 ```bash
 git clone https://github.com/gaotisan/sea-of-amoebas.git
 cd sea-of-amoebas
-Install dependencies:
 ```
 Now, install the dependencies:
 ```bash
