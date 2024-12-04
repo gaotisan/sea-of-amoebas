@@ -1,30 +1,29 @@
 # Sea of Amoebas (SofA)
-A declarative, event-driven framework for modular and scalable workflow execution in JavaScript, designed to make web development smarter and easier.
+A declarative, event-driven framework for modular and scalable workflow execution in JavaScript, empowering you to manage and orchestrate complex processes within your web application.
 
-Imagine building and orchestrating complex workflows in your web application effortlessly, combining standard functions with the power of AI. With **SofA**, you can seamlessly integrate asynchronous processes, conditionally trigger events, and handle intricate data flows—all while enjoying the simplicity and modularity of its declarative design.
+Imagine effortlessly building and coordinating intricate workflows in your web application, chaining functions and creating dynamic process flows. With **SofA**, you can seamlessly integrate asynchronous processes, conditionally trigger events, and handle complex data interactions—enabling scenarios like specialized AI assistants collaborating and queuing tasks, where one assistant's output becomes another's input.
 
-**SofA** transforms your codebase into a dynamic, event-driven environment, empowering your application to handle everything from mundane tasks to advanced AI-powered operations. The best part? It’s so intuitive and efficient, it’s like coding from the comfort of your couch.
+**SofA** transforms your codebase into a dynamic, event-driven environment, allowing your application to handle everything from routine tasks to sophisticated AI-driven operations. The best part? It's so intuitive and efficient, it's like coding from the comfort of your couch.
 
 Sit back, relax, and let **SofA** handle the flow.
 
-## Overview
-SofA enables developers to construct, manage, and execute complex workflows using a network of interconnected Amoeba Nodes. These nodes represent logical functions that process inputs triggered by events.
-The framework's declarative nature supports JSON and YAML syntax, ensuring clarity and flexibility in defining workflows. Its scalability and modularity make it ideal for both small and large-scale systems.
+## Overview and Features
+**SofA** provides a framework to implement workflows as a network of interconnected Amoeba Nodes. Each node represents a function, modeled as *f(x<sub>1</sub>, x<sub>2</sub>, ..., x<sub>n</sub>)*, which waits for all required input parameters to arrive before executing. Once the function completes, it emits output events that can trigger other nodes, creating a continuous flow of processes. This design results in a latent "sea" of nodes (or Amoebas) awaiting events to process, forming a dynamic and responsive system within your web application.
 
-## Core Features
+### Key Features
 1. **Event-Driven Execution:**
-    - Nodes f(x<sub>1</sub>, x<sub>2</sub>, ..., x<sub>n</sub>) execute only after receiving all required inputs as events.
+    - Amoebas execute only after receiving all required inputs as events.
     - Events can carry data from simple primitives to complex objects.
-2. **Multiple Outputs:**
-    - Nodes can emit multiple output events (e1, e2, ..., em), enabling branching and parallel workflows.
+2. **Flexible Output Events:**
+    - Nodes can emit multiple output events *(e1, e2, ..., em)*, enabling branching and parallel workflows.
+    - Conditional events allow nodes to evaluate dynamic conditions and emit specific events based on their results, providing fine-grained control over process flows.
 3. **Modularity and Scalability:**
     - Event emitters can be shared across multiple AmoebaSpaces, allowing interconnected workflows.
+    - Define your "*sea of Amoebas*" in modular parts, simplifying complex systems and allowing the reuse or extension of existing definitions.
 4. **Asynchronous Support:**
     - Fully compatible with both synchronous and asynchronous functions.
 5. **Declarative Design:**
     - Define workflows in JSON or YAML syntax for a readable, shareable structure.
-6. **Conditional Outputs:**
-    - Nodes can emit events based on dynamically evaluated conditions.
 
 ## Installation
 Clone the repository:
@@ -136,8 +135,9 @@ const jsonFlow = {
             inputs: ['D.Input']
         },
         // Logger: Logs all incoming data
-        // If no input events are explicitly specified, the amoeba defaults to listening for events with its own name.
-        // In this case, "Logger" listens for "Logger" events, simplifying the definition for single-input functions.
+        // If no input events are specified, the amoeba listens for events matching its name by default.
+        // This simplify the definition for single-input functions.
+        // In this case, "Logger" listens for "Logger" events        
         {
             id: 'Logger',
             func: "(data) => console.log(`Log: ${data}`)"
@@ -160,7 +160,7 @@ for (const input of inputs) {
 For more illustrative and complex examples, check the tests folder in the repository. It contains a variety of test cases showcasing advanced workflows, including conditional logic, branching, and modular designs.
 
 ## Supported Formats
-- **JSON**: Define Amoeba, inputs, and connections in a structured format.
+- **JSON**: Define amoeba, inputs, and connections in a structured format.
 - **YAML**: Similar to JSON but with more human-readable syntax.
 
 ## License
