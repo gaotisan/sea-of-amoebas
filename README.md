@@ -13,18 +13,18 @@ The framework's declarative nature supports JSON and YAML syntax, ensuring clari
 
 ## Core Features
 1. **Event-Driven Execution:**
-- Nodes (f(x1, x2, ..., xn)) execute only after receiving all required inputs as events.
-- Events can carry data from simple primitives to complex objects.
+    - Nodes (`f(x₁, x₂, ..., xₙ)`) execute only after receiving all required inputs as events.
+    - Events can carry data from simple primitives to complex objects.
 2. **Multiple Outputs:**
-- Nodes can emit multiple output events (e1, e2, ..., em), enabling branching and parallel workflows.
+    - Nodes can emit multiple output events (e1, e2, ..., em), enabling branching and parallel workflows.
 3. **Modularity and Scalability:**
-- Event emitters can be shared across multiple AmoebaSpaces, allowing interconnected workflows.
+    - Event emitters can be shared across multiple AmoebaSpaces, allowing interconnected workflows.
 4. **Asynchronous Support:**
-- Fully compatible with both synchronous and asynchronous functions.
+    - Fully compatible with both synchronous and asynchronous functions.
 5. **Declarative Design:**
-- Define workflows in JSON or YAML syntax for a readable, shareable structure.
+    - Define workflows in JSON or YAML syntax for a readable, shareable structure.
 6. **Conditional Outputs:**
-- Nodes can emit events based on dynamically evaluated conditions.
+    - Nodes can emit events based on dynamically evaluated conditions.
 
 ## Installation
 Clone the repository:
