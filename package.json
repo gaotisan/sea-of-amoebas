@@ -6,6 +6,7 @@
   "type": "module",
   "scripts": {
     "test": "node tests/sea-of-amoebas.test.js",
+    "testia": "node tests/sea-of-amoebas.test.ia.js",
     "start": "node index.js"
   },
   "keywords": [
