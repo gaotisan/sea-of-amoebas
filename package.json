@@ -20,7 +20,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/gaotisan/sea-of-amoebas.git"
+    "url": "git+https://github.com/gaotisan/sea-of-amoebas.git"
   },
   "bugs": {
     "url": "https://github.com/gaotisan/sea-of-amoebas/issues"
