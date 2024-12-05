@@ -3,7 +3,7 @@ A declarative, event-driven framework for modular and scalable workflow executio
 
 Imagine effortlessly building and coordinating intricate workflows in your web application, chaining functions and creating dynamic process flows. With **SofA**, you can seamlessly integrate asynchronous processes, conditionally trigger events, and handle complex data interactions—enabling scenarios like specialized AI assistants collaborating and queuing tasks, where one assistant's output becomes another's input.
 
-The best part? It's so intuitive and efficient, it's like coding from the comfort of your couch ;).
+The best part? It's so intuitive and efficient, it's like coding from the comfort of your couch ;) .
 
 Sit back, relax, and let **SofA** handle the flow.
 
