@@ -105,6 +105,13 @@ async function testAICalculationExecution() {
 // Execute the AI test
 async function runAITests() {
     console.log('Running AI Tests...');
+
+    // Check if API_KEY is set
+    if (!API_KEY || API_KEY === '<your-api-key>') {
+        console.error('❌ API Key is missing. Please set the API key in your environment.');
+        process.exit(1); // Termina la ejecución
+    }
+
     await testAICalculationExecution();
 
     // Display summary

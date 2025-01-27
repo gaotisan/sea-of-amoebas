@@ -16,6 +16,14 @@ export class Amoeba {
         this.expectedEvents = expectedEvents;        
         const executedEvent = `${id}.executed`;
         this.outputEvents = [executedEvent, ...outputEvents.filter(event => event !== executedEvent)];
+        // Validate that all conditional output events have valid functions
+        this.outputEvents.forEach(event => {
+            if (typeof event === 'object' && event.condition) {
+                if (typeof event.condition !== 'function') {
+                    throw new Error(`[${this.id}] Output event condition must be a function.`);
+                }
+            }
+        });
         this.outputRules = outputRules;
         this.receivedData = {};
         this.ready = false;
@@ -57,12 +65,8 @@ export class Amoeba {
                 .filter(event => typeof event === "object" && event.condition)
                 .forEach(({ condition, outputEvents }) => {
                     try {                   
-                        const conditionFunc = new Function(`return ${condition}`)();
-                        if (typeof conditionFunc !== 'function') {
-                            throw new Error('Condition is not a function.');
-                        }
-    
-                        const isConditionMet = conditionFunc(output);   
+                        // Condition is already validated to be a function
+                        const isConditionMet = condition(output);   
                         if (isConditionMet) {
                             outputEvents.forEach(eventName => {
                                 console.log(`[${this.id}] Emitting conditional event: "${eventName}" with data:`, output);
@@ -70,7 +74,7 @@ export class Amoeba {
                             });
                         }
                     } catch (error) {
-                        console.error(`[${this.id}] Error evaluating condition "${condition}": ${error.message}`);
+                        console.error(`[${this.id}] Error evaluating condition: ${error.message}`);
                     }
                 });
         } else {

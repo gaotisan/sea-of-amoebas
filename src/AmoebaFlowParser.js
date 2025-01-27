@@ -5,8 +5,23 @@ export class AmoebaFlowParser {
     constructor() { }
 
     /**
+     * Directly parses a flow object into an AmoebaSea without requiring JSON conversion.
+     * @param {Object} flow - Flow definition as a JavaScript object.
+     * @param {boolean} isTrustedSource - Whether the source is trusted.
+     * @returns {AmoebaSea}
+     */
+    static fromObject(flow, isTrustedSource = true) {
+        // Validate the flow structure directly
+        AmoebaFlowParser.validateStructure(flow, isTrustedSource);
+
+        // Parse the flow into an AmoebaSea
+        return AmoebaFlowParser.parse(flow, isTrustedSource);
+    }
+
+    /**
      * Creates an AmoebaSea from a JSON flow.
      * @param {Object|string} json - JSON definition or JSON string.
+     * @param {boolean} isTrustedSource - Whether the source of the JSON is trusted.
      * @returns {AmoebaSea}
      */
     static fromJSON(json) {
@@ -26,17 +41,36 @@ export class AmoebaFlowParser {
         }
 
         // Validate minimum structure
-        AmoebaFlowParser.validateStructure(parsedJSON);
+        AmoebaFlowParser.validateStructure(parsedJSON, true);
 
-        return AmoebaFlowParser.parse(parsedJSON);
+        return AmoebaFlowParser.parse(parsedJSON, true);
     }
 
     /**
-    * Validates the structure of a flow object.
-    * @param {Object} flow - Flow to validate.
-    * @throws {Error} If the structure is invalid.
-    */
-    static validateStructure(flow) {
+     * Creates an AmoebaSea from a YAML flow.
+     * @param {string} yaml - YAML definition.
+     * @param {boolean} isTrustedSource - Whether the source is trusted.
+     * @returns {AmoebaSea}
+     */
+    static fromYAML(yaml) {
+        try {
+            const flow = YAML.parse(yaml);
+
+            AmoebaFlowParser.validateStructure(flow, true);
+
+            return AmoebaFlowParser.parse(flow, true);
+        } catch (error) {
+            throw new Error(`Invalid YAML: ${error.message}`);
+        }
+    }
+
+    /**
+     * Validates the structure of a flow object.
+     * @param {Object} flow - Flow to validate.
+     * @param {boolean} isTrustedSource - Whether the source is trusted.
+     * @throws {Error} If the structure is invalid.
+     */
+    static validateStructure(flow, isTrustedSource) {
         if (!Array.isArray(flow.amoebas)) {
             throw new Error('Invalid flow structure. Expected a key "amoebas" (array).');
         }
@@ -46,8 +80,10 @@ export class AmoebaFlowParser {
             const { id, func, outputEvents } = amoeba;
 
             AmoebaFlowParser.validateId(id, index);
-            AmoebaFlowParser.validateFunc(func, id);
-            AmoebaFlowParser.validateOutputEvents(outputEvents, id);
+
+            // Validate functions and conditions based on source trust
+            AmoebaFlowParser.validateFunc(func, id, isTrustedSource);
+            AmoebaFlowParser.validateOutputEvents(outputEvents, id, isTrustedSource);
         });
     }
 
@@ -68,23 +104,39 @@ export class AmoebaFlowParser {
      * Validates the "func" field of an amoeba.
      * @param {string|function} func - The function to validate.
      * @param {string} amoebaId - The ID of the amoeba for debugging.
+     * @param {boolean} isTrustedSource - Whether the source is trusted.
      */
-    static validateFunc(func, amoebaId) {
-        if (typeof func !== 'string' && typeof func !== 'function') {
-            throw new Error(
-                `Amoeba "${amoebaId}" must have a valid "func" (string or function).`
-            );
+    static validateFunc(func, amoebaId, isTrustedSource) {
+        if (typeof func === 'function') {
+            return;
         }
+
+        if (isTrustedSource && typeof func === 'string') {
+            try {
+                // Validate if the string can be converted to a function
+                AmoebaFlowParser.resolveFunction(func);
+            } catch (error) {
+                throw new Error(
+                    `Invalid "func" in amoeba "${amoebaId}". Failed to parse function: ${error.message}`
+                );
+            }
+            return;
+        }
+
+        throw new Error(
+            `Amoeba "${amoebaId}" must have a valid "func" (function or string from a trusted source).`
+        );
     }
 
     /**
      * Validates the "outputEvents" field of an amoeba.
      * @param {Array} outputEvents - The output events to validate.
      * @param {string} amoebaId - The ID of the amoeba for debugging.
+     * @param {boolean} isTrustedSource - Whether the source is trusted.
      */
-    static validateOutputEvents(outputEvents, amoebaId) {
+    static validateOutputEvents(outputEvents, amoebaId, isTrustedSource) {
         if (outputEvents === undefined) {
-            return; // outputEvents is optional
+            return; // outputEvents es opcional
         }
 
         if (!Array.isArray(outputEvents)) {
@@ -93,28 +145,27 @@ export class AmoebaFlowParser {
 
         outputEvents.forEach((event, index) => {
             if (typeof event === 'string') {
-                // Valid direct event
+                // Evento directo válido
                 return;
             }
 
             if (
                 typeof event === 'object' &&
-                typeof event.condition === 'string' &&
+                (typeof event.condition === 'function' || (isTrustedSource && typeof event.condition === 'string')) &&
                 Array.isArray(event.outputEvents)
             ) {
-                // Attempt to compile the condition to ensure it's a valid function
-                try {
-                    const conditionFunc = new Function(`return ${event.condition}`)();
-                    if (typeof conditionFunc !== 'function') {
-                        throw new Error('Condition is not a function.');
+                // Validar condición si es cadena (fuente confiable)
+                if (typeof event.condition === 'string' && isTrustedSource) {
+                    try {
+                        AmoebaFlowParser.resolveFunction(event.condition);
+                    } catch (error) {
+                        throw new Error(
+                            `Invalid condition in "outputEvents" at index ${index} in amoeba "${amoebaId}": ${error.message}`
+                        );
                     }
-                } catch (error) {
-                    throw new Error(
-                        `Invalid condition in "outputEvents" at index ${index} in amoeba "${amoebaId}": ${error.message}`
-                    );
                 }
-                // Valid conditional event
-                return;
+
+                return; // Evento válido
             }
 
             throw new Error(
@@ -127,17 +178,50 @@ export class AmoebaFlowParser {
     /**
      * Generic parser that converts a flow object to an AmoebaSea.
      * @param {Object} flow - Processed flow (JSON-like).
+     * @param {boolean} isTrustedSource - Whether the source is trusted.
      * @returns {AmoebaSea}
      */
-    static parse(flow) {
-
+    static parse(flow, isTrustedSource) {
         const sea = new AmoebaSea();
 
-
         flow.amoebas.forEach(({ id, func, inputs = [], outputEvents = [] }) => {
-            const resolvedFunc = AmoebaFlowParser.resolveFunction(func);
+            const resolvedFunc = typeof func === 'function'
+                ? func
+                : isTrustedSource
+                    ? AmoebaFlowParser.resolveFunction(func)
+                    : () => {
+                        throw new Error(
+                            `Execution of functions is not allowed for untrusted sources.`
+                        );
+                    };
 
-            const inputEvents = inputs.map(input =>
+            const resolvedOutputEvents = outputEvents.map((event) => {
+                        if (typeof event === 'string') {
+                            return event; // Evento directo
+                        }
+
+                        if (event.condition && Array.isArray(event.outputEvents)) {
+                            const resolvedCondition = typeof event.condition === 'function'
+                                ? event.condition // Condición como función
+                                : isTrustedSource
+                                    ? AmoebaFlowParser.resolveFunction(event.condition) // Resolver condición como cadena
+                                    : () => {
+                                        throw new Error(
+                                            `Execution of conditions is not allowed for untrusted sources.`
+                                        );
+                                    };
+                            return {
+                                ...event,
+                                condition: resolvedCondition,
+                            };
+                        }
+
+                        throw new Error(
+                            `Invalid output event format in amoeba "${id}".`
+                        );
+                    });
+
+            const inputEvents = inputs.map((input) =>
                 typeof input === 'string' ? input : input.name
             );
 
@@ -145,29 +229,11 @@ export class AmoebaFlowParser {
                 id,
                 func: resolvedFunc,
                 expectedEvents: inputEvents,
-                outputEvents 
+                outputEvents: resolvedOutputEvents,
             });
         });
 
         return sea;
-    }
-
-    /**
-     * Creates an AmoebaSea from a YAML flow.
-     * @param {string} yaml - YAML definition.
-     * @returns {AmoebaSea}
-     */
-    static fromYAML(yaml) {
-        try {
-            // Parse YAML to JSON-like object
-            const flow = YAML.parse(yaml);
-            
-            AmoebaFlowParser.validateStructure(flow);
-
-            return AmoebaFlowParser.parse(flow);
-        } catch (error) {
-            throw new Error(`Invalid YAML: ${error.message}`);
-        }
     }
 
     /**
@@ -188,5 +254,5 @@ export class AmoebaFlowParser {
         }
         throw new Error(`Invalid function: ${func}`);
     }
-
+    
 }
