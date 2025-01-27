@@ -26,15 +26,11 @@ Sit back, relax, and let **SofA** handle the flow.
     - Define workflows in JSON or YAML syntax for a readable, shareable structure.
 
 ## Installation
-Clone the repository:
+Install the package directly from npm:
 ```bash
-git clone https://github.com/gaotisan/sea-of-amoebas.git
-cd sea-of-amoebas
+npm install sea-of-amoebas
 ```
-Now, install the dependencies:
-```bash
-npm install
-```
+That's it! The package is now ready to use in your project.
 
 ## Quickstart Example
 
