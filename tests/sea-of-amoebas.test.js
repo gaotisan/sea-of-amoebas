@@ -36,7 +36,7 @@ async function testSequentialExecution() {
     sea.addAmoeba({
         id: 'S2',
         func: amoebaBFunction,
-        expectedEvents: ['S2'],
+        inputEvents: ['S2'],
         outputEvents: ['S3']
     });
     sea.addAmoeba({
@@ -78,21 +78,21 @@ async function testCalculationExecution() {
     sea.addAmoeba({
         id: 'AmoebaA',
         func: add,
-        expectedEvents: ['input.a', 'input.b'],
+        inputEvents: ['input.a', 'input.b'],
         outputEvents: ['AmoebaB.input']
     });
 
     sea.addAmoeba({
         id: 'AmoebaB',
         func: multiply,
-        expectedEvents: ['AmoebaB.input', 'input.y'],
+        inputEvents: ['AmoebaB.input', 'input.y'],
         outputEvents: ['AmoebaC.input']
     });
 
     sea.addAmoeba({
         id: 'AmoebaC',
         func: increment,
-        expectedEvents: ['AmoebaC.input']
+        inputEvents: ['AmoebaC.input']
     });
 
     // Finalize configuration and wait for the last amoeba
@@ -142,14 +142,14 @@ async function testMixedExecutionAndCompletion() {
     sea.addAmoeba({
         id: 'B',
         func: funcB,
-        expectedEvents: ['B.input'],
+        inputEvents: ['B.input'],
         outputEvents: ['C.input']
     });
 
     sea.addAmoeba({
         id: 'C',
         func: funcC,
-        expectedEvents: ['C.input']
+        inputEvents: ['C.input']
     });
 
     // Set initial input and trigger execution
@@ -189,21 +189,21 @@ async function testResultStorage() {
     sea.addAmoeba({
         id: 'AmoebaA',
         func: suma,
-        expectedEvents: ['input.a', 'input.b'],
+        inputEvents: ['input.a', 'input.b'],
         outputEvents: ['AmoebaB.input']
     });
 
     sea.addAmoeba({
         id: 'AmoebaB',
         func: multiplica,
-        expectedEvents: ['AmoebaB.input', 'input.y'],
+        inputEvents: ['AmoebaB.input', 'input.y'],
         outputEvents: ['AmoebaC.input']
     });
 
     sea.addAmoeba({
         id: 'AmoebaC',
         func: incrementa,
-        expectedEvents: ['AmoebaC.input']
+        inputEvents: ['AmoebaC.input']
     });
 
     // Finalize configuration
@@ -218,8 +218,8 @@ async function testResultStorage() {
     const resultC = await sea.waitForAmoebaExecution('AmoebaC');
 
     // Validate that results are stored in the amoebas
-    const resultA = sea.amoebas['AmoebaA'].result;
-    const resultB = sea.amoebas['AmoebaB'].result;
+    const resultA = sea.amoebas['AmoebaA'].lastResult;
+    const resultB = sea.amoebas['AmoebaB'].lastResult;
 
     const resultAValid = resultA === 8;
     const resultBValid = resultB === 16;
@@ -233,71 +233,80 @@ async function testResultStorage() {
 async function testConditionalEventEmission() {
     const sea = new AmoebaSea();
 
+    // Amoeba with a condition that triggers 'HighValue' if true and 'NotHighValue' if false
     sea.addAmoeba({
-        id: 'ConditionTrue',
+        id: 'ConditionWithElse',
         func: (x) => x * 2,
-        expectedEvents: ['input.x'],
+        inputEvents: ['input.x'],
         outputEvents: [
             {
                 condition: (result) => result > 10,
-                outputEvents: ['HighValue']
+                then: ['HighValue'],
+                else: ['NotHighValue']
             }
         ]
     });
 
+    // Amoeba with a condition that triggers 'LowValue' if true (no else specified)
     sea.addAmoeba({
-        id: 'ConditionFalse',
+        id: 'ConditionWithoutElse',
         func: (x) => x + 2,
-        expectedEvents: ['input.x'],
+        inputEvents: ['input.x'],
         outputEvents: [
             {
                 condition: (result) => result < 5,
-                outputEvents: ['LowValue']
+                then: ['LowValue']
             }
         ]
     });
 
+    // Event tracking
     let highValueTriggered = false;
+    let notHighValueTriggered = false;
     let lowValueTriggered = false;
 
+    // Listeners for events
     sea.eventEmitter.on('HighValue', () => {
         highValueTriggered = true;
+    });
+
+    sea.eventEmitter.on('NotHighValue', () => {
+        notHighValueTriggered = true;
     });
 
     sea.eventEmitter.on('LowValue', () => {
         lowValueTriggered = true;
     });
 
-    // Ensures all amoebas are "ready" to process inputs and their listeners are set up.
-    // Without this, inputs won't trigger amoeba execution.
+    // Finalize configuration
     sea.finalizeConfiguration();
-    // Sets up a promise that waits for the 'ConditionTrue.executed' &  'ConditionFalse.executed' events to resolve.
-    // Ensures no event is missed if inputs trigger execution after this point.
-    const promiseConditionTrue = sea.waitForAmoebaExecution('ConditionTrue');
-    const promiseConditionFalse = sea.waitForAmoebaExecution('ConditionFalse');
 
-    // Triggers an input event for 'input.x' with a value of 6.
-    // This input will propagate through the amoebas based on their configuration.
+    // Set up promises for execution
+    const promiseConditionWithElse = sea.waitForAmoebaExecution('ConditionWithElse');
+    const promiseConditionWithoutElse = sea.waitForAmoebaExecution('ConditionWithoutElse');
+
+    // Trigger an input event
     sea.setInput('input.x', 6);
 
-    // Waits for the 'ConditionTrue' amoeba to execute and resolve its promise.
-    // Ensures the flow dependent on this result does not proceed prematurely.
-    await promiseConditionTrue;
+    // Await promises
+    await promiseConditionWithElse;
+    await promiseConditionWithoutElse;
 
-    // Waits for the 'ConditionFalse' amoeba to execute and resolve its promise.
-    // Synchronizes with the completion of this amoeba’s execution.
-    await promiseConditionFalse;
-
+    // Validate results
     registerResult(
-        'Test Conditional Event Emission (Condition True)',
-        highValueTriggered,
-        highValueTriggered ? '' : 'HighValue event was not triggered.'
+        'Test Conditional Event Emission with Else',
+        highValueTriggered && !notHighValueTriggered,
+        highValueTriggered
+            ? ''
+            : 'HighValue event was not triggered or NotHighValue was incorrectly triggered.'
     );
 
     registerResult(
-        'Test Conditional Event Emission (Condition False)',
+        'Test Conditional Event Emission without Else',
         !lowValueTriggered,
-        lowValueTriggered ? 'LowValue event was incorrectly triggered.' : ''
+        lowValueTriggered
+            ? 'LowValue event was incorrectly triggered.'
+            : 'LowValue was correctly not triggered (as expected).'
     );
 }
 
@@ -306,7 +315,7 @@ async function testInvalidConditionHandling() {
 
     let errorDetected = false;
 
-    // Capturar y redirigir el error
+
     const originalConsoleError = console.error;
     console.error = (message) => {
         if (message.includes('[InvalidCondition] Output event condition must be a function.')) {
@@ -315,16 +324,16 @@ async function testInvalidConditionHandling() {
         originalConsoleError(message);
     };
 
-    // Configurar la amoeba con una condición inválida
+    errorDetected = false;
     try {
         sea.addAmoeba({
             id: 'InvalidCondition',
             func: (x) => x * 2,
-            expectedEvents: ['input.x'],
+            inputEvents: ['input.x'],
             outputEvents: [
                 {
-                    condition: '(result) => ', // Condición inválida (cadena en lugar de función)
-                    outputEvents: ['InvalidEvent']
+                    condition: '(result) => ', 
+                    then: ['InvalidEvent']
                 }
             ]
         });
@@ -333,15 +342,9 @@ async function testInvalidConditionHandling() {
         sea.setInput('input.x', 5);
 
         await sea.waitForAmoebaExecution('InvalidCondition');
-    } catch (error) {
-        // Si el sistema lanza una excepción, podemos marcar el error como detectado
-        if (error.message.includes('[InvalidCondition] Output event condition must be a function.')) {
-            errorDetected = true;
-        }
-    } finally {
-        // Restaurar console.error
-        console.error = originalConsoleError;
-    }
+    } catch (error) {        
+        errorDetected = error.message.includes("Amoeba 'InvalidCondition':");        
+    } 
 
     // Registrar el resultado como exitoso si se detectó el error esperado
     registerResult(
@@ -368,7 +371,7 @@ async function testPerformance() {
         sea.addAmoeba({
             id: `Amoeba${i}`,
             func: (input) => input + 1,
-            expectedEvents: i === 0 ? ['input.start'] : [`Amoeba${i - 1}.executed`],
+            inputEvents: i === 0 ? ['input.start'] : [`Amoeba${i - 1}.executed`],
             outputEvents: [`Amoeba${i}.executed`]
         });
     }
@@ -431,19 +434,19 @@ async function testExampleWeb1() {
     sofa.addAmoeba({
         id: 'AmoebaA',
         func: add,
-        expectedEvents: ['input.a', 'input.b'],
+        inputEvents: ['input.a', 'input.b'],
         outputEvents: ['AmoebaB.input']
     });
     sofa.addAmoeba({
         id: 'AmoebaB',
         func: multiply,
-        expectedEvents: ['AmoebaB.input', 'input.y'],
+        inputEvents: ['AmoebaB.input', 'input.y'],
         outputEvents: ['AmoebaC.input']
     });
     sofa.addAmoeba({
         id: 'AmoebaC',
         func: increment,
-        expectedEvents: ['AmoebaC.input']
+        inputEvents: ['AmoebaC.input']
     });
     // Finalize configuration
     sofa.finalizeConfiguration();
@@ -462,8 +465,6 @@ async function testExampleWeb1() {
     );
 }
 
-
-
 async function testInterconnectedAmoebaSeas() {
 
     // First AmoebaSea
@@ -474,7 +475,7 @@ async function testInterconnectedAmoebaSeas() {
             console.log('Amoeba A1 executed');
             return x + 1;
         },
-        expectedEvents: ['input.start'],
+        inputEvents: ['input.start'],
         outputEvents: ['sharedEvent']
     });
 
@@ -486,7 +487,7 @@ async function testInterconnectedAmoebaSeas() {
             console.log('Amoeba B1 executed');
             return x * 2;
         },
-        expectedEvents: ['sharedEvent']
+        inputEvents: ['sharedEvent']
     });
 
     // Finalize configurations
@@ -512,6 +513,92 @@ async function testInterconnectedAmoebaSeas() {
     );
 }
 
+async function testGlobalAndIndividualResultStorage() {
+    const add = (a, b) => a + b;
+    const multiply = (x, y) => x * y;
+    const increment = async (z) => z + 1;
+
+    // Global configuration: storeResults = true
+    const sea = new AmoebaSea({ storeResults: true });
+
+    // Add amoebas with different `storeResults` configurations
+    sea.addAmoeba({
+        id: 'AmoebaA',
+        func: add,
+        inputEvents: ['input.a', 'input.b'],
+        outputEvents: ['AmoebaB.input'],
+        storeResults: false, // Overrides global setting
+    });
+
+    sea.addAmoeba({
+        id: 'AmoebaB',
+        func: multiply,
+        inputEvents: ['AmoebaB.input', 'input.y'],
+        outputEvents: ['AmoebaC.input'], // Inherits global setting
+    });
+
+    sea.addAmoeba({
+        id: 'AmoebaC',
+        func: increment,
+        inputEvents: ['AmoebaC.input'],
+        storeResults: true, // Overrides global setting
+    });
+
+    // Finalize configuration
+    sea.finalizeConfiguration();
+
+    // Set inputs
+    sea.setInput('input.a', 5);
+    sea.setInput('input.b', 3);
+    sea.setInput('input.y', 2);
+
+    // Wait for final execution
+    const finalResult = await sea.waitForAmoebaExecution('AmoebaC');
+
+    // Validate results
+    const amoebaAResult = sea.amoebas['AmoebaA'].lastResult;
+    const amoebaBResult = sea.amoebas['AmoebaB'].lastResult;
+    const amoebaCResult = sea.amoebas['AmoebaC'].lastResult;
+
+    const amoebaAValid = amoebaAResult === null; // `storeResults` is false
+    const amoebaBValid = amoebaBResult === 16; // Inherited from global `storeResults`
+    const amoebaCValid = amoebaCResult === 17; // Overrides global `storeResults`
+
+    registerResult(
+        'Test Global and Individual Result Storage (AmoebaA)',
+        amoebaAValid,
+        amoebaAValid
+            ? ''
+            : `Expected undefined for AmoebaA, got ${amoebaAResult}`
+    );
+
+    registerResult(
+        'Test Global and Individual Result Storage (AmoebaB)',
+        amoebaBValid,
+        amoebaBValid
+            ? ''
+            : `Expected 16 for AmoebaB, got ${amoebaBResult}`
+    );
+
+    registerResult(
+        'Test Global and Individual Result Storage (AmoebaC)',
+        amoebaCValid,
+        amoebaCValid
+            ? ''
+            : `Expected 17 for AmoebaC, got ${amoebaCResult}`
+    );
+
+    // Validate final result
+    const finalResultValid = finalResult === 17;
+    registerResult(
+        'Test Global and Individual Result Storage (Final Result)',
+        finalResultValid,
+        finalResultValid
+            ? ''
+            : `Expected final result 17, got ${finalResult}`
+    );
+}
+
 
 async function runTest(testFunction, testName) {
     try {
@@ -534,6 +621,7 @@ async function runTests() {
     //await runTest(testPerformance, "Test Performance");
     await runTest(testInterconnectedAmoebaSeas, 'Test Interconnected AmoebaSeas');
     await runTest(testExampleWeb1, "Test Example Web Workflow");
+    await runTest(testGlobalAndIndividualResultStorage, "Test Global and Individual Result Storage");
        
     // Display summary
     console.log('\n--- Test Summary ---');

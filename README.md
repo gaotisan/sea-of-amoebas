@@ -47,19 +47,19 @@ const sofa = new AmoebaSea();
 sofa.addAmoeba({
     id: 'AmoebaA',
     func: add,
-    expectedEvents: ['input.a', 'input.b'],
+    inputEvents: ['input.a', 'input.b'],
     outputEvents: ['AmoebaB.input']
 });
 sofa.addAmoeba({
     id: 'AmoebaB',
     func: multiply,
-    expectedEvents: ['AmoebaB.input', 'input.y'],
+    inputEvents: ['AmoebaB.input', 'input.y'],
     outputEvents: ['AmoebaC.input']
 });
 sofa.addAmoeba({
     id: 'AmoebaC',
     func: increment,
-    expectedEvents: ['AmoebaC.input']
+    inputEvents: ['AmoebaC.input']
 });
 // Finalize configuration
 sofa.finalizeConfiguration();
@@ -71,7 +71,7 @@ sofa.setInput('input.y', 2); //Initial value for 'input.y'
 const finalResult = await sofa.waitForAmoebaExecution('AmoebaC');
 ```
 
-### Define a Flow with JSON
+### Define a Flow with a JavaScript Object
 
 ```javascript
 import { AmoebaFlowParser } from 'sea-of-amoebas';
@@ -82,41 +82,42 @@ const jsonFlow = {
         // and either B.Input or C.Input based on conditions
         {
             id: 'A',
-            func: "(x) => x + 1",
-            inputs: ['input.x'],
+            func: (x) => x + 1,
+            inputEvents: ['input.x'],
             outputEvents: [
                 "Logger", // Sends all results to Logger, regardless of value
                 {
-                    condition: "(result) => result > 5", // If result > 5, send to B.Input
-                    outputEvents: ["B.Input"]
+                    condition: (result) => result > 5, // If result > 5, send to B.Input
+                    then: ["B.Input"],
+                    else: ["C.Input"], // Else 
                 },
                 {
-                    condition: "(result) => result <= 5", // If result <= 5, send to C.Input
-                    outputEvents: ["C.Input"]
+                    condition: (result) => result == 5, // If result == 5, send to an Extra Logger (All condition are evaluated)
+                    then: ["Logger"]
                 }
             ]
         },
         // Amoeba B: Multiplies the input by 2 and emits conditionally to D or Logger
         {
             id: 'B',
-            func: "(y) => y * 2",
-            inputs: ['B.Input'],
+            func: (y) => y * 2,
+            inputEvents: ['B.Input'],
             outputEvents: [
                 {
-                    condition: "(result) => result > 15",// If result > 15, send to D.Input
-                    outputEvents: ["D.Input"]
+                    condition: (result) => result > 15,// If result > 15, send to D.Input
+                    then: ["D.Input"]
                 },
                 {
-                    condition: "(result) => result <= 15",// If result <= 15, send to Logger
-                    outputEvents: ["Logger"]
+                    condition: (result) => result <= 15,// If result <= 15, send to Logger (without 'else' example)
+                    then: ["Logger"]
                 }
             ]
         },
         // Amoeba C: Subtracts 2 from the input and sends the result to Logger
         {
             id: 'C',
-            func: "(z) => z - 2",
-            inputs: ['C.Input'],
+            func: (z) => z - 2,
+            inputEvents: ['C.Input'],
             outputEvents: ["Logger"]
         },
         // Amoeba D: Computes modulus of input with 3
@@ -127,8 +128,8 @@ const jsonFlow = {
         // or `await sea.waitForOutputEvent("D.executed")` to directly capture the emitted event.
         {
             id: 'D',
-            func: "(w) => w % 3",
-            inputs: ['D.Input']
+            func: (w) => w % 3,
+            inputEvents: ['D.Input']
         },
         // Logger: Logs all incoming data
         // If no input events are specified, the amoeba listens for events matching its name by default.
@@ -136,12 +137,12 @@ const jsonFlow = {
         // In this case, "Logger" listens for "Logger" events        
         {
             id: 'Logger',
-            func: "(data) => console.log(`Log: ${data}`)"
+            func: (data) => console.log(`Log: ${data}`)
         }
     ]
 };
 // Parse the JSON and create the workflow
-const sofa = AmoebaFlowParser.fromJSON(jsonFlow);
+const sofa = AmoebaFlowParser.fromObject(jsonFlow);
 // Finalize configuration
 sofa.finalizeConfiguration();
 // Test the workflow with different inputs

@@ -16,7 +16,7 @@ function registerResult(testName, passed, message = '') {
     testResults.details.push({ testName, passed, message });
 }
 
-async function testExampleFromObject() {
+async function testExampleConditionElseFromObject() {
     // Define the workflow as a JavaScript object
     const jsonFlow = {
         amoebas: [
@@ -25,16 +25,17 @@ async function testExampleFromObject() {
             {
                 id: 'A',
                 func: (x) => x + 1,
-                inputs: ['input.x'],
+                inputEvents: ['input.x'],
                 outputEvents: [
                     "Logger", // Sends all results to Logger, regardless of value
                     {
                         condition: (result) => result > 5, // If result > 5, send to B.Input
-                        outputEvents: ["B.Input"]
+                        then: ["B.Input"],
+                        else: ["C.Input"], //Else 
                     },
                     {
-                        condition: (result) => result <= 5, // If result <= 5, send to C.Input
-                        outputEvents: ["C.Input"]
+                        condition: (result) => result == 5, // If result <= 5, send to C.Input (All condition are evaluated)
+                        then: ["Logger"]
                     }
                 ]
             },
@@ -42,15 +43,15 @@ async function testExampleFromObject() {
             {
                 id: 'B',
                 func: (y) => y * 2,
-                inputs: ['B.Input'],
+                inputEvents: ['B.Input'],
                 outputEvents: [
                     {
                         condition: (result) => result > 15,// If result > 15, send to D.Input
-                        outputEvents: ["D.Input"]
+                        then: ["D.Input"]
                     },
                     {
-                        condition: '(result) => result <= 15',// If result <= 15, send to Logger
-                        outputEvents: ["Logger"]
+                        condition: (result) => result <= 15,// If result == 5, send to an Extra Logger (All condition are evaluated)
+                        then: ["Logger"]
                     }
                 ]
             },
@@ -58,7 +59,7 @@ async function testExampleFromObject() {
             {
                 id: 'C',
                 func: (z) => z - 2,
-                inputs: ['C.Input'],
+                inputEvents: ['C.Input'],
                 outputEvents: ["Logger"]
             },
             // Amoeba D: Computes modulus of input with 3
@@ -70,7 +71,7 @@ async function testExampleFromObject() {
             {
                 id: 'D',
                 func: (w) => w % 3,
-                inputs: ['D.Input']
+                inputEvents: ['D.Input']
             },
             // Logger: Logs all incoming data
             // If no input events are specified, the amoeba listens for events matching its name by default.
@@ -87,7 +88,7 @@ async function testExampleFromObject() {
     // Finalize configuration
     sofa.finalizeConfiguration();
     // Test the workflow with different inputs
-    
+
     const expectedResults = [
         { input: 3, expectedAmoeba: 'C', expectedResult: 2 },
         { input: 6, expectedAmoeba: 'B', expectedResult: 14 },
@@ -123,11 +124,11 @@ async function testExampleFromObject() {
 async function testTrustedVsUntrustedSources() {
     const example = {
         amoebas: [
-            { id: 'A', func: '(x) => x + 1', inputs: ['input.x'], outputEvents: ['Log'] },
+            { id: 'A', func: '(x) => x + 1', inputEvents: ['input.x'], outputEvents: ['Log'] },
             { id: 'Logger', func: '(data) => console.log(`Log: ${data}`)' },
         ],
-    };    
-    
+    };
+
     // Test trusted source
     try {
         const trustedSea = AmoebaFlowParser.fromObject(example, true);
@@ -143,11 +144,11 @@ async function testTrustedVsUntrustedSources() {
         registerResult('Test Trusted Source (Execution)', false, `Unexpected error: ${error.message}`);
     }
 
-    
+
     // Test untrusted source parsing
     let untrustedSea;
     try {
-        untrustedSea = AmoebaFlowParser.fromObject(example, false); // Fuente no confiable        
+        untrustedSea = AmoebaFlowParser.fromObject(example, false); //isTrustedSource=false      
         registerResult('Test Untrusted Source (Parsing)', false);
     } catch (error) {
         registerResult(
@@ -155,8 +156,8 @@ async function testTrustedVsUntrustedSources() {
             true,
             `Parsing failed for untrusted source: ${error.message}`
         );
-    }    
-        
+    }
+
 }
 
 async function testParseFromObject() {
@@ -165,85 +166,68 @@ async function testParseFromObject() {
             {
                 id: 'A',
                 func: '(x) => x + 1',
-                inputs: ['input.x'],
+                inputEvents: ['input.x'],
                 outputEvents: [
-                    "Log",
+                    "Logger",
                     {
                         condition: "(result) => result > 5",
-                        outputEvents: ["B.Input", "Logger"]
+                        then: ["B.Input"]
                     },
                     {
                         condition: "(result) => result <= 5",
-                        outputEvents: ["C.Input"]
+                        then: ["C.Input"]
                     }
                 ]
             },
             {
                 id: 'B',
                 func: '(y) => y * 2',
-                inputs: ['B.Input'],
+                inputEvents: ['B.Input'],
                 outputEvents: [
                     {
                         condition: "(result) => result > 15",
-                        outputEvents: ["D.Input"]
+                        then: ["D.Input", "Logger"]
                     },
                     {
                         condition: "(result) => result <= 15",
-                        outputEvents: ["Logger"]
+                        then: ["Logger"]
                     }
                 ]
             },
             {
                 id: 'C',
                 func: '(z) => z - 2',
-                inputs: ['C.Input'],
+                inputEvents: ['C.Input'],
                 outputEvents: ["Logger"]
             },
             {
                 id: 'D',
                 func: '(w) => w % 3',
-                inputs: ['D.Input']
+                inputEvents: ['D.Input']
             },
             {
                 id: 'Logger',
-                func: '(data) => console.log(`Log: ${data}`)',
+                func: '(data) => console.log(`Log: ${data}`)'
             }
-        ],
+        ]
     };
 
     console.log("Running Object Parsing Test with Unified OutputEvents...");
 
     // Parse the JSON and create the AmoebaSea
-    const sea = AmoebaFlowParser.fromObject(jsonFlow, true);
+    const sea = AmoebaFlowParser.fromObject(jsonFlow, true); //isTrustedSource=true
 
-    // Validate amoebas creation
-    const expectedIds = ['A', 'B', 'C', 'D', 'Logger'];
-    const actualIds = Object.keys(sea.amoebas);
-    const idsMatch = JSON.stringify(expectedIds) === JSON.stringify(actualIds);
+    // Attach an event tracker
+    const emittedEvents = {};
+    sea.eventEmitter.toggleWildcard(true);
+    sea.eventEmitter.on('*', (event, data) => {
+        if (!emittedEvents[event]) {
+            emittedEvents[event] = [];
+        }
+        emittedEvents[event].push(data);
+    });
 
-    registerResult(
-        'Test Parse From Object (Amoeba IDs)',
-        idsMatch,
-        `Expected IDs: ${JSON.stringify(expectedIds)}, Got: ${JSON.stringify(actualIds)}`
-    );
-
-    // Validate one amoeba's configuration
-    const amoebaA = sea.amoebas['A'];
-    const amoebaAValid =
-        amoebaA &&
-        amoebaA.expectedEvents.includes('input.x') &&
-        amoebaA.outputEvents.some(event => event === 'Log') &&
-        amoebaA.outputEvents.some(
-            event => typeof event === 'object' && event.condition && Array.isArray(event.outputEvents)
-        );
-
-    registerResult(
-        'Test Parse From Object (Amoeba A Configuration)',
-        amoebaAValid,
-        `Amoeba A is not configured correctly. Got: ${JSON.stringify(amoebaA)}`
-    );
-
-    // Validate functional execution
+    // Finalize configuration
     sea.finalizeConfiguration();
 
     const inputs = [3, 6, 10];
@@ -273,81 +257,115 @@ async function testParseFromObject() {
 
     console.log('Execution results:', results);
 
-    const outputsValid = results.every(({ input, result }) => {
-        const incremented = input + 1;
+    // Expected emitted events for validation
+    const expectedEvents = {
+        "input.x": [3, 6, 10],
+        "A.executed": [4, 7, 11],
+        "C.Input": [4],
+        "C.executed": [2],
+        "B.Input": [7, 11],
+        "B.executed": [14, 22],
+        "D.Input": [22],
+        "D.executed": [1],
+        "Logger": [4, 2, 7, 14, 11, 22]
+    };
 
-        if (incremented <= 5) {
-            // Flow through C
-            return result === incremented - 2;
-        } else {
-            // Flow through B
-            const bResult = incremented * 2;
-            if (bResult > 15) {
-                // Flow through D
-                return result === bResult % 3;
-            } else {
-                // Flow through Logger
-                return result === bResult;
-            }
-        }
+    // Exclude "Logger.executed" from validation
+    const relevantExpectedEvents = Object.keys(expectedEvents);
+    const relevantEmittedEvents = Object.keys(emittedEvents).filter(event => event !== "Logger.executed");
+
+    // Validate emitted events
+    const eventsMatch = relevantExpectedEvents.every(event => {
+        const expectedValues = expectedEvents[event];
+        const actualValues = emittedEvents[event] || [];
+        return JSON.stringify(expectedValues) === JSON.stringify(actualValues);
+    });
+
+    const allEventsMatch = relevantEmittedEvents.every(event => {
+        const expectedValues = expectedEvents[event] || [];
+        const actualValues = emittedEvents[event];
+        return JSON.stringify(expectedValues) === JSON.stringify(actualValues);
     });
 
     registerResult(
-        'Test Parse From Object (Execution Results)',
-        outputsValid,
-        `Results do not match expected logic. Got: ${JSON.stringify(results)}`
+        'Test Parse From Object (Event Validation)',
+        eventsMatch && allEventsMatch,
+        eventsMatch && allEventsMatch
+            ? ''
+            : `Emitted events do not match expected values.\nExpected: ${JSON.stringify(expectedEvents, null, 2)}\nActual: ${JSON.stringify(emittedEvents, null, 2)}`
     );
+
+    // Log emitted events for manual inspection
+    console.log('Emitted events (for manual inspection):', JSON.stringify(emittedEvents, null, 2));
+
+    // Validate results
+    const expectedResults = [
+        { input: 3, result: 2 },
+        { input: 6, result: 14 },
+        { input: 10, result: 1 }
+    ];
+
+    const resultsMatch = JSON.stringify(results) === JSON.stringify(expectedResults);
+
+    registerResult(
+        'Test Parse From Object (Result Validation)',
+        resultsMatch,
+        resultsMatch
+            ? ''
+            : `Execution results do not match expected values.\nExpected: ${JSON.stringify(expectedResults, null, 2)}\nActual: ${JSON.stringify(results, null, 2)}`
+    );
+
 }
 
+
 async function testParseFromJSON() {
-    // JSON Flow como cadena válida
     const jsonFlow = JSON.stringify({
         amoebas: [
             {
                 id: 'A',
-                func: '(x) => x + 1', // Representado como cadena
-                inputs: ['input.x'],
+                func: '(x) => x + 1',
+                inputEvents: ['input.x'],
                 outputEvents: [
                     "Logger",
                     {
-                        condition: "(result) => result > 5", // Representado como cadena
-                        outputEvents: ["B.Input"]
+                        condition: "(result) => result > 5",
+                        then: ["B.Input"]
                     },
                     {
-                        condition: "(result) => result <= 5", // Representado como cadena
-                        outputEvents: ["C.Input"]
+                        condition: "(result) => result <= 5",
+                        then: ["C.Input"]
                     }
                 ]
             },
             {
                 id: 'B',
-                func: '(y) => y * 2', // Representado como cadena
-                inputs: ['B.Input'],
+                func: '(y) => y * 2',
+                inputEvents: ['B.Input'],
                 outputEvents: [
                     {
-                        condition: "(result) => result > 15", // Representado como cadena
-                        outputEvents: ["D.Input"]
+                        condition: "(result) => result > 15",
+                        then: ["D.Input"]
                     },
                     {
-                        condition: "(result) => result <= 15", // Representado como cadena
-                        outputEvents: ["Logger"]
+                        condition: "(result) => result <= 15",
+                        then: ["Logger"]
                     }
                 ]
             },
             {
                 id: 'C',
-                func: '(z) => z - 2', // Representado como cadena
-                inputs: ['C.Input'],
+                func: '(z) => z - 2',
+                inputEvents: ['C.Input'],
                 outputEvents: ["Logger"]
             },
             {
                 id: 'D',
-                func: '(w) => w % 3', // Representado como cadena
-                inputs: ['D.Input']
+                func: '(w) => w % 3',
+                inputEvents: ['D.Input']
             },
             {
                 id: 'Logger',
-                func: '(data) => console.log(`Log: ${data}`)', // Representado como cadena
+                func: '(data) => console.log(`Log: ${data}`)',
             }
         ],
     });
@@ -355,10 +373,10 @@ async function testParseFromJSON() {
     console.log("Running JSON Parsing Test...");
 
     try {
-        // Parsear el flujo JSON y crear el AmoebaSea
-        const sea = AmoebaFlowParser.fromJSON(jsonFlow, true);
 
-        // Validar la creación de las amebas
+        const sea = AmoebaFlowParser.fromJSON(jsonFlow);
+
+
         const expectedIds = ['A', 'B', 'C', 'D', 'Logger'];
         const actualIds = Object.keys(sea.amoebas);
         const idsMatch = JSON.stringify(expectedIds) === JSON.stringify(actualIds);
@@ -369,23 +387,21 @@ async function testParseFromJSON() {
             `Expected IDs: ${JSON.stringify(expectedIds)}, Got: ${JSON.stringify(actualIds)}`
         );
 
-        // Validar la configuración de la amoeba A
         const amoebaA = sea.amoebas['A'];
         const amoebaAValid =
             amoebaA &&
-            amoebaA.expectedEvents.includes('input.x') &&
+            amoebaA.inputEvents.includes('input.x') &&
             amoebaA.outputEvents.some(event => event === 'Logger') &&
             amoebaA.outputEvents.some(
-                event => typeof event === 'object' && event.condition && Array.isArray(event.outputEvents)
+                event => typeof event === 'object' && event.condition && Array.isArray(event.then)
             );
-
+        
         registerResult(
             'Test Parse From JSON (Amoeba A Configuration)',
             amoebaAValid,
-            `Amoeba A is not configured correctly. Got: ${JSON.stringify(amoebaA)}`
+            `Amoeba A is not configured correctly`
         );
 
-        // Finalizar configuración y ejecutar pruebas funcionales
         sea.finalizeConfiguration();
 
         const inputs = [3, 6, 10];
@@ -451,22 +467,19 @@ async function testParseFromYAML() {
 amoebas:
   - id: A
     func: "(x) => x + 1"
-    inputs:
+    inputEvents:
       - input.x
     outputEvents:
       - A.output
   - id: B
     func: "(y) => y * 2"
-    inputs:
+    inputEvents:
       - A.output
 `;
 
-
-    // Parse the YAML to create the AmoebaSea
     const sea = AmoebaFlowParser.fromYAML(yamlFlow, true);
 
-    sea.finalizeConfiguration(); // Finalize with B as the target amoeba
-    // Define a promise to wait for the final amoeba's execution
+    sea.finalizeConfiguration(); // Finalize with B as the target amoeba    
     const finalPromise = sea.waitForAmoebaExecution('B');
     sea.setInput('input.x', 4); // Input for amoeba A
 
@@ -493,10 +506,10 @@ async function runTest(testFunction, testName) {
 // Execute all tests
 async function runTests() {
     console.log('Running Tests...');
-    await runTest(testExampleFromObject, "Test FromObject");
     await runTest(testTrustedVsUntrustedSources, 'Test Trusted vs Untrusted Sources');
     await runTest(testParseFromObject, 'Test Parse From Object');
-    await runTest(testParseFromJSON, 'Test Parse From JSON');    
+    await runTest(testExampleConditionElseFromObject, "Test FromObject");        
+    await runTest(testParseFromJSON, 'Test Parse From JSON');
     await runTest(testParseFromYAML, 'Test Parse From YAML');    
 
     // Display summary

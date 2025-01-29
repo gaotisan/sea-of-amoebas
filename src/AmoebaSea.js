@@ -8,20 +8,20 @@ export class AmoebaSea {
         this.storeResults = storeResults;
     }
 
-    addAmoeba({ id, func, expectedEvents = [], outputEvents = [], outputRules = [] }) {
-        if (expectedEvents.length === 0) {
-            //console.warn(`[AmoebaSea] Amoeba "${id}" has no explicit inputs. Defaulting to its own ID as input.`);
-            expectedEvents.push(id);            
-        }
-        const amoeba = new Amoeba({ id, func, eventEmitter: this.eventEmitter, storeResults: this.storeResults, expectedEvents, outputEvents, outputRules });
-        this.amoebas[id] = amoeba;
+    addAmoeba({ id, func, inputEvents = [], outputEvents = [], storeResults = null }) {
+        
+        const finalStoreResults = storeResults !== null ? storeResults : this.storeResults;
 
-        // Register listeners for the expected events
-        expectedEvents.forEach(eventName => {
-            this.eventEmitter.on(eventName, (data) => {
-                amoeba.receive(eventName, data);
-            });
-        });        
+        const amoeba = new Amoeba({ 
+            id, 
+            func, 
+            eventEmitter: this.eventEmitter, 
+            storeResults: finalStoreResults, 
+            inputEvents, 
+            outputEvents,             
+        });           
+        this.amoebas[id] = amoeba;
+        
     }    
 
     finalizeConfiguration() {        
@@ -47,6 +47,6 @@ export class AmoebaSea {
     }
 
     stopAll() {
-        this.eventEmitter.clearAll(); // Limpiar suscripciones
+        this.eventEmitter.clearAll(); 
     }
 }

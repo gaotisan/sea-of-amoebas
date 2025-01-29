@@ -136,7 +136,7 @@ export class AmoebaFlowParser {
      */
     static validateOutputEvents(outputEvents, amoebaId, isTrustedSource) {
         if (outputEvents === undefined) {
-            return; // outputEvents es opcional
+            return;
         }
 
         if (!Array.isArray(outputEvents)) {
@@ -145,19 +145,44 @@ export class AmoebaFlowParser {
 
         outputEvents.forEach((event, index) => {
             if (typeof event === 'string') {
-                // Evento directo válido
-                return;
+                return; // Valid simple event
             }
 
-            if (
-                typeof event === 'object' &&
-                (typeof event.condition === 'function' || (isTrustedSource && typeof event.condition === 'string')) &&
-                Array.isArray(event.outputEvents)
-            ) {
-                // Validar condición si es cadena (fuente confiable)
-                if (typeof event.condition === 'string' && isTrustedSource) {
+            if (typeof event === 'object') {
+                const { condition, then, else: elseEvents } = event;
+
+                // Validate `condition`
+                if (condition === undefined) {
+                    throw new Error(
+                        `Invalid "outputEvents" at index ${index} in amoeba "${amoebaId}": Missing "condition".`
+                    );
+                }
+                if (
+                    !(typeof condition === 'function' || (isTrustedSource && typeof condition === 'string'))
+                ) {
+                    throw new Error(
+                        `Invalid "condition" in "outputEvents" at index ${index} in amoeba "${amoebaId}". Expected a function or a trusted string.`
+                    );
+                }
+
+                // Validate `then`
+                if (!Array.isArray(then)) {
+                    throw new Error(
+                        `Invalid "outputEvents" at index ${index} in amoeba "${amoebaId}": "then" must be an array.`
+                    );
+                }
+
+                // Validate `else` (optional)
+                if (elseEvents !== undefined && !Array.isArray(elseEvents)) {
+                    throw new Error(
+                        `Invalid "outputEvents" at index ${index} in amoeba "${amoebaId}": "else" must be an array if defined.`
+                    );
+                }
+
+                // If `condition` is a string, validate it as a trusted function
+                if (typeof condition === 'string' && isTrustedSource) {
                     try {
-                        AmoebaFlowParser.resolveFunction(event.condition);
+                        AmoebaFlowParser.resolveFunction(condition);
                     } catch (error) {
                         throw new Error(
                             `Invalid condition in "outputEvents" at index ${index} in amoeba "${amoebaId}": ${error.message}`
@@ -165,12 +190,12 @@ export class AmoebaFlowParser {
                     }
                 }
 
-                return; // Evento válido
+                return; // Valid conditional event
             }
 
             throw new Error(
                 `Invalid "outputEvents" format at index ${index} in amoeba "${amoebaId}". ` +
-                `Expected a string or an object with "condition" and "outputEvents".`
+                `Expected a string or an object with "condition", "then", and optional "else".`
             );
         });
     }
@@ -182,9 +207,9 @@ export class AmoebaFlowParser {
      * @returns {AmoebaSea}
      */
     static parse(flow, isTrustedSource) {
-        const sea = new AmoebaSea();
+        const sea = new AmoebaSea({ storeResults: flow.storeResults || false });
 
-        flow.amoebas.forEach(({ id, func, inputs = [], outputEvents = [] }) => {
+        flow.amoebas.forEach(({ id, func, inputEvents = [], outputEvents = [], storeResults = null }) => {
             const resolvedFunc = typeof func === 'function'
                 ? func
                 : isTrustedSource
@@ -195,41 +220,38 @@ export class AmoebaFlowParser {
                         );
                     };
 
-            const resolvedOutputEvents = outputEvents.map((event) => {
-                        if (typeof event === 'string') {
-                            return event; // Evento directo
-                        }
+            const resolvedOutputEvents = outputEvents.map(event => {
+                if (typeof event === 'string') {
+                    return event;
+                }
 
-                        if (event.condition && Array.isArray(event.outputEvents)) {
-                            const resolvedCondition = typeof event.condition === 'function'
-                                ? event.condition // Condición como función
-                                : isTrustedSource
-                                    ? AmoebaFlowParser.resolveFunction(event.condition) // Resolver condición como cadena
-                                    : () => {
-                                        throw new Error(
-                                            `Execution of conditions is not allowed for untrusted sources.`
-                                        );
-                                    };
-                            return {
-                                ...event,
-                                condition: resolvedCondition,
+                if (typeof event === 'object' && 'condition' in event) {
+                    const resolvedCondition = typeof event.condition === 'function'
+                        ? event.condition
+                        : isTrustedSource
+                            ? AmoebaFlowParser.resolveFunction(event.condition) 
+                            : () => {
+                                throw new Error(
+                                    `Execution of conditions is not allowed for untrusted sources.`
+                                );
                             };
-                        }
+            
+                    return {
+                        condition: resolvedCondition,
+                        then: event.then || [],  
+                        else: event.else || []   
+                    };
+                }
 
-                        throw new Error(
-                            `Invalid output event format in amoeba "${id}".`
-                        );
-                    });
-
-            const inputEvents = inputs.map((input) =>
-                typeof input === 'string' ? input : input.name
-            );
+                throw new Error(`Invalid output event format in amoeba "${id}".`);
+            });
 
             sea.addAmoeba({
                 id,
                 func: resolvedFunc,
-                expectedEvents: inputEvents,
+                inputEvents: inputEvents,
                 outputEvents: resolvedOutputEvents,
+                storeResults
             });
         });
 
@@ -254,5 +276,5 @@ export class AmoebaFlowParser {
         }
         throw new Error(`Invalid function: ${func}`);
     }
-    
+
 }

@@ -65,21 +65,21 @@ async function testAICalculationExecution() {
     sea.addAmoeba({
         id: 'AmoebaA',
         func: async (a, b) => aiCalculate('add', a, b),
-        expectedEvents: ['input.a', 'input.b'],
+        inputEvents: ['input.a', 'input.b'],
         outputEvents: ['AmoebaB.input']
     });
 
     sea.addAmoeba({
         id: 'AmoebaB',
         func: async (x, y) => aiCalculate('multiply', x, y),
-        expectedEvents: ['AmoebaB.input', 'input.y'],
+        inputEvents: ['AmoebaB.input', 'input.y'],
         outputEvents: ['AmoebaC.input']
     });
 
     sea.addAmoeba({
         id: 'AmoebaC',
         func: async (z) => aiCalculate('increment', z),
-        expectedEvents: ['AmoebaC.input']
+        inputEvents: ['AmoebaC.input']
     });
 
     // Finalize configuration and wait for the last amoeba
